@@ -9,6 +9,7 @@ DoubleImpactStore es una tienda en línea de videojuegos retro originales. Es la
 | Capa | Tecnología |
 |---|---|
 | Frontend | HTML5 semántico + CSS3 (variables, grid, flexbox) + JavaScript ES Modules (Vanilla) |
+| Íconos | Font Awesome 6.5.1 — instalado localmente en `css/font-awesome_6.5.1_all.min.css` (sin CDN externo) |
 | Datos / Catálogo | Google Sheets publicado como CSV (sin backend propio) |
 | Imágenes | WebP con variantes responsive (400 / 800 / 1200 px) |
 | PWA | Service Worker + Web App Manifest |
@@ -287,7 +288,9 @@ const permalink = `https://www.instagram.com/p/${row.Link}/`;
 const sold = row.Sold === '1';
 ```
 
-### SiglasDict
+### SiglasDict (`js/siglas.json`)
+
+Cada entrada usa la sigla en mayúsculas como clave, con campos `es` y `en`:
 
 ```typescript
 interface SiglaEntry {
@@ -296,44 +299,195 @@ interface SiglaEntry {
 }
 
 type SiglasDict = Record<string, SiglaEntry>
-// Ejemplo: { "CIB": { "es": "Completo en caja", "en": "Complete in box" }, ... }
 ```
 
-### InstagramPost
+Entradas reales del archivo (39 siglas definidas):
+
+```json
+{
+  "CIB":  { "es": "Caja, Juego, Manual",              "en": "Box, Game, Manual" },
+  "CIB+": { "es": "Caja, Juego, Manual, Insertos",    "en": "Box, Game, Manual, Inserts" },
+  "MM":   { "es": "Sin Manual",                        "en": "Missing Manual" },
+  "BL":   { "es": "Black Label",                       "en": "Black Label" },
+  "GH":   { "es": "Greatest Hits",                     "en": "Greatest Hits" },
+  "CE":   { "es": "Collector's Edition",               "en": "Collector's Edition" },
+  "L":    { "es": "Loose: Suelto: Solo Juego",         "en": "Loose: Game Only" },
+  "S":    { "es": "Sealed: Sellado de Fábrica",        "en": "Sealed: Factory Sealed" },
+  "PAL":  { "es": "Europeo",                           "en": "European" },
+  "2D":   { "es": "Dos Discos",                        "en": "Two Discs" },
+  "3D":   { "es": "Tres Discos",                       "en": "Three Discs" },
+  "4D":   { "es": "Cuatro Discos",                     "en": "Four Discs" },
+  "PC":   { "es": "Players Choice",                    "en": "Players Choice" },
+  "PH":   { "es": "Platinum Hits",                     "en": "Platinum Hits" },
+  "K":    { "es": "Kinect",                            "en": "Kinect" },
+  "M":    { "es": "Sólo Manual",                       "en": "Manual Only" },
+  "C":    { "es": "Solo Caja o Carátula org.",         "en": "Box or Original Cover Only" },
+  "CM":   { "es": "Caja y Manual, Sin Juego",          "en": "Box and Manual, No Game" },
+  "CCR":  { "es": "Caja y Carátula Repro",             "en": "Box and Reproduction Cover" },
+  "DC":   { "es": "Daño en Carátula",                  "en": "Cover Damage" },
+  "DM":   { "es": "Daño en Manual",                    "en": "Manual Damage" },
+  "CR":   { "es": "Carátula Repro",                    "en": "Reproduction Cover" },
+  "CBB":  { "es": "Caja BlockBuster",                  "en": "BlockBuster Box" },
+  "C/M":  { "es": "Con Mapa",                          "en": "With Map" },
+  "S/M":  { "es": "Sin Mapa",                          "en": "No Map" },
+  "S/C":  { "es": "Sin Carátula",                      "en": "No Cover" },
+  "WD":   { "es": "Water Damaged / Daño de Agua",      "en": "Water Damaged" },
+  "LW":   { "es": "Label Dañado",                      "en": "Label Wrong" },
+  "SCT":  { "es": "Sin Carátula Trasera",              "en": "No Back Cover" },
+  "JNF":  { "es": "Juego NO Funciona",                 "en": "Game Does Not Work" },
+  "GotY": { "es": "Game of the Year",                  "en": "Game of the Year" },
+  "MO":   { "es": "Manual Online",                     "en": "Online Manual" },
+  "Holo": { "es": "Holográfico",                       "en": "Holographic" },
+  "SFC":  { "es": "Super Famicom",                     "en": "Super Famicom" },
+  "org":  { "es": "original",                          "en": "original" },
+  "alt":  { "es": "Alternativo",                       "en": "Alternative" },
+  "Acc":  { "es": "Accesorio",                         "en": "Accessory" },
+  "Japo": { "es": "Japonés",                           "en": "Japanese" },
+  "ESP":  { "es": "Español",                           "en": "Spanish" }
+}
+```
+
+### InstagramPost (`js/instagram_posts.js`)
+
+El archivo exporta una constante `INSTAGRAM_POSTS_DATA` (array) y una función `getInstagramPostsData()`. La estructura real de cada post es:
 
 ```typescript
 interface InstagramPost {
-  id: string;
-  imageUrl: string;           // URL base de imagen WebP
-  srcset: string;             // "img/ig/400/x.webp 400w, img/ig/800/x.webp 800w, ..."
-  caption: string;            // Texto del post (puede contener hashtags y siglas)
-  permalink: string;          // URL directa a Instagram
-  timestamp: string;          // ISO 8601
-  consoles: string[];         // Consolas detectadas vía console_aliases.json
+  id: string;          // Identificador único del post — ej. "ig_auto_18101525171223871"
+  image: string;       // Ruta a la imagen local — ej. "img/IG_18101525171223871.jpeg"
+  title: string;       // Título del post — ej. "PlayStation 4 | 06/Ago/26"
+  description: string; // Texto completo del post con productos, siglas y leyenda de estados
+  link: string;        // URL completa del post en Instagram — ej. "https://www.instagram.com/p/DbuYdn8lTVI/"
+  media_type: string;  // Tipo de media — "CAROUSEL_ALBUM", "IMAGE", "VIDEO"
+  date: string;        // Fecha en formato ISO 8601 — ej. "2026-08-07"
+  likes: number;       // Número de likes del post
 }
 ```
 
-### ConsoleAliases
+Estructura del archivo JS:
 
-```typescript
-// Mapa de alias → nombre canónico de consola
-type ConsoleAliases = Record<string, string>
-// Ejemplo: { "ps1": "PlayStation", "psx": "PlayStation", "nes": "Nintendo NES", ... }
+```javascript
+// ========== DATOS DE POSTS DE INSTAGRAM AUTOMATIZADOS ==========
+// Última actualización: YYYY-MM-DD HH:MM:SS
+
+const INSTAGRAM_POSTS_DATA = [
+  {
+    "id": "ig_auto_18101525171223871",
+    "image": "img/IG_18101525171223871.jpeg",
+    "title": "PlayStation 4 | 06/Ago/26",
+    "description": "\n[✅] 4421 Fifa 19 (BL-CIB) [PS4] $5K\n...\n[❌]: VENDIDO\n[✅]: DISPONIBLE",
+    "link": "https://www.instagram.com/p/DbuYdn8lTVI/",
+    "media_type": "CAROUSEL_ALBUM",
+    "date": "2026-08-07",
+    "likes": 24
+  }
+];
+
+function getInstagramPostsData() {
+  return INSTAGRAM_POSTS_DATA;
+}
 ```
 
-### Efemeride
+**Notas de implementación para `instagram.js`:**
+- La consola asociada a cada post se detecta comparando `post.title` contra las `aliases` de `console_aliases.json`
+- El campo `link` ya contiene la URL completa (a diferencia del catálogo de productos, donde se construye desde el sufijo)
+- Las imágenes vienen en formato JPEG/PNG; el Instagram_Updater genera las variantes WebP adicionales
+
+### ConsoleAliases (`js/console_aliases.json`)
+
+Cada entrada tiene una clave canónica, una etiqueta de display y un array de strings que aparecen en los títulos de posts de Instagram para identificar la consola:
 
 ```typescript
+interface ConsoleAliasEntry {
+  label: string;     // Nombre de display para los botones de filtro — ej. "PS1", "GameCube"
+  aliases: string[]; // Strings a buscar en post.title para detectar la consola
+}
+
+type ConsoleAliases = Record<string, ConsoleAliasEntry>
+```
+
+Entradas reales del archivo:
+
+```json
+{
+  "PS1":       { "label": "PS1",        "aliases": ["[PS1]", "PlayStation 1 |", "PS1 Sueltos", "PSX", "Sony PlayStation 1"] },
+  "PS2":       { "label": "PS2",        "aliases": ["[PS2]", "PlayStation 2 |", "PS2 Sueltos", "Sony PlayStation 2"] },
+  "PS3":       { "label": "PS3",        "aliases": ["[PS3]", "PlayStation 3 |", "Sony PlayStation 3"] },
+  "PS4":       { "label": "PS4",        "aliases": ["[PS4]", "PlayStation 4 |", "Sony PlayStation 4"] },
+  "PSP":       { "label": "PSP",        "aliases": ["[PSP]", "PlayStation Portable |"] },
+  "NES":       { "label": "NES",        "aliases": ["[NES]", "Nintendo NES |", "Manuales NES"] },
+  "SNES":      { "label": "SNES",       "aliases": ["[SNES]", "Super Nintendo |", "Manuales SNES"] },
+  "N64":       { "label": "N64",        "aliases": ["[N64]", "Nintendo 64 |", "Manuales N64"] },
+  "GCN":       { "label": "GameCube",   "aliases": ["[GCN]", "[GC]", "Nintendo Gamecube |"] },
+  "Wii":       { "label": "Wii",        "aliases": ["[Wii]", "Nintendo Wii |"] },
+  "GB":        { "label": "GameBoy",    "aliases": ["[GB]", "Gameboy DMG"] },
+  "GBC":       { "label": "GBC",        "aliases": ["[GBC]", "Gameboy Color"] },
+  "GBA":       { "label": "GBA",        "aliases": ["[GBA]", "Manuales Gameboy Advance"] },
+  "DS":        { "label": "DS",         "aliases": ["[DS]", "Nintendo DS |", "[NDS]"] },
+  "3DS":       { "label": "3DS",        "aliases": ["[3DS]", "Nintendo 3DS |"] },
+  "Genesis":   { "label": "Genesis",    "aliases": ["[Genesis]", "Sega Genesis |", "Mega Drive"] },
+  "Dreamcast": { "label": "Dreamcast",  "aliases": ["[DC]", "[DC3]", "Sega Dreamcast"] },
+  "Xbox":      { "label": "Xbox OG",    "aliases": ["[Xbox]", "Xbox OG", "Xbox Classic"] },
+  "X360":      { "label": "Xbox 360",   "aliases": ["[X360]", "Xbox 360 |"] },
+  "PC":        { "label": "PC",         "aliases": ["[PC]", "Juegos PC |"] },
+  "Console":   { "label": "Consolas",   "aliases": ["[Console]", "Consolas |"] },
+  "Varios":    { "label": "Varios",     "aliases": ["[Varios]", "Juegos Varios |"] },
+  "Accesorios":{ "label": "Accesorios", "aliases": ["Accesorios |"] },
+  "Manuales":  { "label": "Manuales",   "aliases": ["Manuales PlayStation", "Manuales SNES", "Manuales NES"] },
+  "DVD":       { "label": "DVD/VHS",    "aliases": ["[DVD]", "DVD |", "Películas DVD", "Películas VHS"] }
+}
+```
+
+**Uso en `instagram.js`**: para detectar la consola de un post se itera sobre las entradas de `console_aliases.json` y se comprueba si alguno de sus `aliases` aparece como substring en `post.title`.
+
+### Efemeride (`js/efemerides.json`)
+
+El archivo tiene una clave raíz `"efemerides"` con un array de entradas. Cada entrada usa `date` en formato `"DD/MM"` (día/mes) y tiene secciones `ES` y `EN` con tres campos de texto:
+
+```typescript
+interface EfemeridesText {
+  title: string;  // Título corto del evento — ej. "Pokémon debuta en Japón (1997)"
+  text: string;   // Descripción breve (1–2 frases)
+  det: string;    // Detalle extendido para expandir
+}
+
 interface Efemeride {
-  date: string;         // "MM-DD" (mes-día)
-  year?: number;        // Año del evento histórico
-  es: string;           // Descripción en español
-  en: string;           // Descripción en inglés
+  date: string;        // Formato "DD/MM" — ej. "01/06", "08/17"
+  ES: EfemeridesText;  // Contenido en español
+  EN: EfemeridesText;  // Contenido en inglés
 }
 
-type EfemeridesData = Record<string, Efemeride>
-// Clave: "MM-DD" — ejemplo: { "08-17": { year: 1995, es: "...", en: "..." } }
+interface EfemeridesData {
+  efemerides: Efemeride[];
+}
 ```
+
+Estructura real del archivo:
+
+```json
+{
+  "efemerides": [
+    {
+      "date": "01/01",
+      "ES": {
+        "title": "Pokémon debuta en Japón (1997)",
+        "text": "Se estrena la primera emisión del anime de Pokémon en televisión...",
+        "det": "Este día de Año Nuevo marcó el inicio del anime de Ash y Pikachu en Japón..."
+      },
+      "EN": {
+        "title": "Pokémon Anime Debuts in Japan (1997)",
+        "text": "The first broadcast of the Pokémon anime airs on television...",
+        "det": "This New Year's Day marked the start of the Ash and Pikachu anime in Japan..."
+      }
+    }
+  ]
+}
+```
+
+**Notas de implementación para `efemerides.js`:**
+- El array debe recorrerse para encontrar la entrada cuyo `date` coincide con `"DD/MM"` de la fecha actual
+- El formato de clave es `"DD/MM"` (día primero), a diferencia del diseño original que usaba `"MM-DD"`
+- `getTodayEfemeride` debe construir la clave como `String(day).padStart(2,'0') + '/' + String(month).padStart(2,'0')`
 
 ### CacheEntry (localStorage)
 

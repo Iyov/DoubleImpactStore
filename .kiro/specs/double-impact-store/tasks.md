@@ -21,16 +21,20 @@ Tests E2E: **Playwright**
   - _Requirements: 1.2, 9.3, 9.4, 10.8, 11.1, 11.3, 11.5_
 
 - [ ] 2. Crear archivos de datos JSON
-  - [ ] 2.1 Crear `js/siglas.json` con diccionario de ≥ 40 siglas bilingüe (ES/EN)
-    - Cada entrada debe tener clave en MAYÚSCULAS y campos `{ "es": "...", "en": "..." }`
-    - Incluir siglas comunes: CIB, BL, GH, OVP, CIB, PAL, NTSC, NTSC-J, CIB, NFR, etc.
+  - [ ] 2.1 Verificar `js/siglas.json` — ya existe con 39 siglas bilingüe (ES/EN)
+    - Estructura real: `{ "CIB": { "es": "Caja, Juego, Manual", "en": "Box, Game, Manual" }, ... }`
+    - El archivo ya contiene: CIB, CIB+, MM, BL, GH, CE, L, S, PAL, 2D, 3D, 4D, PC, PH, K, M, C, CM, CCR, DC, DM, CR, CBB, C/M, S/M, S/C, WD, LW, SCT, JNF, GotY, MO, Holo, SFC, org, alt, Acc, Japo, ESP
+    - Si faltan siglas relevantes, agregarlas manteniendo el mismo formato
     - _Requirements: 5.1_
-  - [ ] 2.2 Crear `js/efemerides.json` con al menos 30 efemérides de gaming retro
-    - Formato de clave: `"MM-DD"`, campos: `{ "year": number, "es": "...", "en": "..." }`
-    - Cubrir fechas notables (lanzamientos de NES, SNES, PS1, N64, Sega, etc.)
+  - [ ] 2.2 Verificar `js/efemerides.json` — ya existe con efemérides de gaming retro
+    - Estructura real: `{ "efemerides": [{ "date": "DD/MM", "ES": { "title": "...", "text": "...", "det": "..." }, "EN": { ... } }] }`
+    - La clave de fecha es `"DD/MM"` (día/mes) — importante: `getTodayEfemeride` debe construir la clave como `padStart(2,'0') + '/' + padStart(2,'0')` (día primero)
+    - Verificar que haya cobertura para las fechas más relevantes del año
     - _Requirements: 13.1_
-  - [ ] 2.3 Crear `js/console_aliases.json` con mapa de alias → nombre canónico de consola
-    - Incluir: ps1/psx/playstation, ps2, snes/super nintendo, nes/famicom, n64, genesis/mega drive, etc.
+  - [ ] 2.3 Verificar `js/console_aliases.json` — ya existe con 25 plataformas
+    - Estructura real: `{ "PS1": { "label": "PS1", "aliases": ["[PS1]", "PlayStation 1 |", "PSX", ...] }, ... }`
+    - La detección de consola en `instagram.js` busca cada alias como substring en `post.title`
+    - Incluye: PS1, PS2, PS3, PS4, PSP, NES, SNES, N64, GCN, Wii, GB, GBC, GBA, DS, 3DS, Genesis, Dreamcast, Xbox, X360, PC, Console, Varios, Accesorios, Manuales, DVD
     - _Requirements: 6.7_
 
 - [ ] 3. Implementar módulos JavaScript — Capa de infraestructura
@@ -146,10 +150,13 @@ Tests E2E: **Playwright**
 
 - [ ] 7. Implementar módulo `js/modules/instagram.js`
   - [ ] 7.1 Implementar inicialización y renderizado de posts
-    - Exportar `initInstagram(posts, aliases)`, `filterPostsByConsole(posts, console, aliases)`, `formatRelativeDate(date, lang)`
-    - Renderizar posts con `<picture>` usando `srcset` en 400w/800w/1200w (formato WebP) y lazy loading (`loading="lazy"`)
-    - Botón de filtro por consola leyendo aliases desde `js/console_aliases.json`
-    - Al hacer clic en post: abrir `post.permalink` en nueva pestaña (`target="_blank" rel="noopener noreferrer"`)
+    - Exportar `initInstagram(posts, aliases)`, `filterPostsByConsole(posts, consoleKey, aliases)`, `formatRelativeDate(date, lang)`
+    - Los posts vienen de `getInstagramPostsData()` en `js/instagram_posts.js` con estructura: `{ id, image, title, description, link, media_type, date, likes }`
+    - La detección de consola: para cada entrada en `console_aliases.json`, verificar si algún string en `entry.aliases` aparece como substring en `post.title`
+    - El campo `post.link` ya contiene la URL completa de Instagram (no requiere construcción)
+    - Renderizar posts con lazy loading (`loading="lazy"`) en la imagen
+    - Al hacer clic en post: abrir `post.link` en nueva pestaña (`target="_blank" rel="noopener noreferrer"`)
+    - Botones de filtro: usar `entry.label` de `console_aliases.json` como texto del botón
     - _Requirements: 6.1, 6.2, 6.3, 6.5, 6.6, 6.7_
   - [ ] 7.2 Implementar formateo de fechas relativas bilingüe
     - `formatRelativeDate(date, lang)`: retornar "Hace X días" (ES) / "X days ago" (EN) según diferencia temporal
@@ -187,7 +194,7 @@ Tests E2E: **Playwright**
     - Layout responsive con CSS Grid y Flexbox: breakpoints en 768px y 1024px
     - Estilos para: header/nav, hero, secciones de índice (sobre nosotros, instagram, efemérides, blog, testimonios, FAQ, contacto), footer
     - Clases de tema: `[data-theme="dark"]` y `[data-theme="light"]` en `<html>`
-    - Font Awesome 6.5.1 para íconos
+    - Font Awesome 6.5.1 — referenciar el archivo local `css/font-awesome_6.5.1_all.min.css` (ya instalado, NO usar CDN externo)
     - _Requirements: 2.1, 2.5, 3.1, 3.2_
   - [ ] 11.2 Crear `css/productos.css` — estilos del catálogo
     - Tabla de productos responsive; tarjetas en móvil y tabla en desktop
@@ -204,6 +211,7 @@ Tests E2E: **Playwright**
     - Secciones: hero, sobre nosotros, productos destacados, instagram, efemérides, blog (tarjetas con modal), testimonios, FAQ, servicios técnicos, contacto (redes sociales + WhatsApp + link al catálogo en Sheets + info de envíos)
     - Meta tags completos: title, description, keywords, canonical, og:*, twitter:* (con dominio DoubleImpactStore)
     - Schema.org JSON-LD: `Store`, `Product`, `Service` (incluyendo `knowsAbout` para servicios técnicos y pulido de discos), `FAQPage`
+    - Cargar Font Awesome local: `<link rel="stylesheet" href="css/font-awesome_6.5.1_all.min.css">` (NO CDN)
     - Integración GTM, GA4 y Cloudflare Analytics via `<script>` tags en `<head>` y al final del `<body>`
     - Cargar módulos JS con `type="module"` y query string de versión (ej. `?v=2026-08-17`)
     - Ícono activo en nav: `setNavActive('/')` llamado desde `index.js`
