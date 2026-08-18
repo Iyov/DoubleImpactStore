@@ -1,0 +1,27 @@
+# ========== ARCHIVOS TEMPORALES ==========
+*.bak
+*.tmp
+*~
+.DS_Store
+Thumbs.db
+
+# ========== LOGS ==========
+*.log
+
+# ========== CONFIGURACIONES LOCALES ==========
+config.local.js
+credentials.js
+secrets.js
+
+# ========== CARPETAS DE DESARROLLO ==========
+node_modules/
+.cache/
+logs/
+
+# ========== EDITORES ==========
+.vscode/settings.json
+.idea/
+*.sublime-project
+
+# ========== SECRETOS ==========
+.env
