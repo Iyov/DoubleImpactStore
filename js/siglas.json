@@ -37,5 +37,9 @@
   "alt":  { "es": "Alternativo",                       "en": "Alternative" },
   "Acc":  { "es": "Accesorio",                         "en": "Accessory" },
   "Japo": { "es": "Japonés",                           "en": "Japanese" },
-  "ESP":  { "es": "Español",                           "en": "Spanish" }
+  "ESP":  { "es": "Español",                           "en": "Spanish" },
+  "NTSC": { "es": "NTSC (versión americana/japonesa)", "en": "NTSC (American/Japanese version)" },
+  "JAP":  { "es": "Versión japonesa",                  "en": "Japanese version" },
+  "US":   { "es": "Versión americana",                 "en": "US version" },
+  "REG":  { "es": "Reimpresión (Reprint)",             "en": "Reprint" }
 }

@@ -1,0 +1,38 @@
+{
+  "name": "doubleimpactstore",
+  "version": "1.0.0",
+  "description": "DoubleImpactStore — tienda de videojuegos retro y coleccionables. Sitio estático HTML5 + CSS3 + JavaScript Vanilla ES Modules + PWA.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "build": "node watcher.js --once",
+    "minify": "node watcher.js --once",
+    "watch": "node watcher.js",
+    "check:siglas": "node scripts/check-siglas.js",
+    "check:minification": "node scripts/check-minification.js",
+    "check:manifest": "node scripts/check-manifest.js",
+    "check:brand": "node scripts/check-brand.js",
+    "check": "npm run check:siglas && npm run check:manifest && npm run check:brand && npm run check:minification"
+  },
+  "keywords": [
+    "doubleimpactstore",
+    "videojuegos-retro",
+    "pwa",
+    "google-sheets",
+    "static-site"
+  ],
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@vitest/coverage-v8": "^3.0.0",
+    "cssnano": "^8.0.6",
+    "fast-check": "^3.22.0",
+    "jsdom": "^26.0.0",
+    "postcss": "^8.5.26",
+    "terser": "^5.36.0",
+    "vitest": "^3.0.0"
+  }
+}

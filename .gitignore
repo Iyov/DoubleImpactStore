@@ -25,3 +25,9 @@ logs/
 
 # ========== SECRETOS ==========
 .env
+
+# ========== TESTS / COBERTURA ==========
+coverage/
+test-results/
+playwright-report/
+tests/e2e/*-output/

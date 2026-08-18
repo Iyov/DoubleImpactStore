@@ -1,0 +1,427 @@
+/* ============================================================
+   DoubleImpactStore — productos.css (fuente)
+   ============================================================
+   Estilos de la página de catálogo (/productos):
+   breadcrumb, título, controles de búsqueda/filtros, tabla de
+   productos, badges de stock, paginación, modal de detalle y
+   lista de siglas detectadas.
+
+   Depende de css/style.min.css (variables de tema --bg, --surface,
+   --border, --accent, --text, --text-muted, --success, ...).
+
+   Comportamiento responsive:
+   - Desktop: tabla completa con 6 columnas.
+   - Móvil (<= 768px): thead oculto y cada fila se convierte en
+     tarjetas apiladas usando el atributo data-label de cada celda
+     (pseudo-elemento ::before) para mostrar el nombre de columna.
+
+   Generación: los .min.css se crean con watcher.js (no editar).
+   ============================================================ */
+
+/* ---------- Breadcrumb ----------
+   Ruta Inicio / Productos con separador "/" y estado aria-current. */
+.breadcrumb {
+  padding: 16px 0 8px;
+}
+
+.breadcrumb ol {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.breadcrumb li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.breadcrumb li + li::before {
+  content: '/';
+  color: var(--text-muted);
+}
+
+.breadcrumb a {
+  color: var(--accent-2);
+  text-decoration: none;
+}
+
+.breadcrumb li[aria-current='page'] {
+  color: var(--text-muted);
+}
+
+/* ---------- Título de página ----------
+   Encabezado H1 con la traducción actual (ES/EN). */
+.page-title {
+  margin: 8px 0 24px;
+  font-size: 2rem;
+}
+
+/* ---------- Controles del catálogo ----------
+   Barra de búsqueda (debounce 300ms), chips de plataforma
+   (fieldset) y selects de estado/orden. js/products.js los
+   enlaza con el estado de la tabla. */
+.catalog-controls {
+  margin-bottom: 20px;
+}
+
+.catalog-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+
+.catalog-search i {
+  color: var(--text-muted);
+}
+
+.catalog-search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 1rem;
+  outline: none;
+}
+
+.catalog-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.platform-fieldset {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 0;
+  flex: 1 1 100%;
+}
+
+.platform-fieldset legend {
+  padding: 0 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.platform-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.platform-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.platform-chip input {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.select-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.select-label select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.catalog-status {
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ---------- Tabla ----------
+   Filas clicables (abren modal); las vendidas se atenúan 0.55. */
+.catalog-table-wrap {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.catalog-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.catalog-table thead th {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 2px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.catalog-table tbody td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.catalog-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.catalog-table tbody tr:hover {
+  background: var(--surface-2);
+}
+
+.catalog-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.catalog-table tbody tr.product-sold {
+  opacity: 0.55;
+}
+
+.product-name {
+  font-weight: 600;
+}
+
+.empty-row {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 28px !important;
+}
+
+/* ---------- Badges ----------
+   Píldoras de estado: Disponible (verde) / Vendido (rojo). */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge--available {
+  background: rgba(46, 204, 113, 0.18);
+  color: var(--success);
+}
+
+.badge--sold {
+  background: rgba(230, 57, 70, 0.18);
+  color: var(--accent);
+}
+
+/* ---------- Resultados / error ----------
+   Contador de resultados y caja de error con botón Reintentar. */
+.catalog-results {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 12px 0 0;
+}
+
+.catalog-error {
+  background: rgba(230, 57, 70, 0.1);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.catalog-error p {
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+
+/* ---------- Paginación ----------
+   Info de página + botones Anterior/Siguiente + números. */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.pagination-info {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-right: 12px;
+}
+
+.pagination-btn,
+.pagination-page {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.pagination-btn:hover:not(:disabled),
+.pagination-page:hover {
+  background: var(--surface-2);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pagination-page.current {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.pagination-pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ---------- Modal de producto ----------
+   Definición (dl) en dos columnas + lista de siglas detectadas.
+   El modal base (.modal) está en style.css. */
+.product-detail-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 18px;
+  margin: 16px 0;
+}
+
+.product-detail-list dt {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.product-detail-list dd {
+  margin: 0;
+}
+
+.product-detail-siglas-title {
+  margin: 20px 0 10px;
+  font-size: 1.05rem;
+}
+
+.sigla-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.sigla-item {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.sigla-key {
+  font-weight: 800;
+  color: var(--accent);
+  min-width: 56px;
+}
+
+.sigla-def {
+  color: var(--text);
+}
+
+/* ---------- Responsive: tabla como tarjetas en móvil ----------
+   <= 768px: se oculta thead y cada <td> muestra su data-label.
+   La celda .product-name pasa a apilar nombre y siglas. */
+@media (max-width: 768px) {
+  .catalog-table {
+    min-width: 0;
+  }
+
+  .catalog-table thead {
+    display: none;
+  }
+
+  .catalog-table,
+  .catalog-table tbody,
+  .catalog-table tr,
+  .catalog-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .catalog-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0;
+  }
+
+  .catalog-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .catalog-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 14px;
+    border-bottom: none;
+  }
+
+  .catalog-table tbody td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .catalog-table tbody td.product-name {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .catalog-table tbody td.product-name::before {
+    content: attr(data-label);
+  }
+
+  .pagination {
+    justify-content: center;
+  }
+}

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo — DoubleImpactStore | Videojuegos retro originales</title>
+  <meta name="description" content="Catálogo completo de videojuegos retro originales de DoubleImpactStore. Filtra por plataforma, busca por nombre y revisa el estado exacto de cada juego.">
+  <meta name="keywords" content="catálogo, videojuegos retro, juegos originales, PS1, PS2, SNES, NES, N64, comprar, Chile">
+  <link rel="canonical" href="https://doubleimpactstore.cl/productos">
+  <meta property="og:title" content="Catálogo — DoubleImpactStore">
+  <meta property="og:description" content="Catálogo completo de videojuegos retro originales de DoubleImpactStore.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://doubleimpactstore.cl/productos">
+  <meta property="og:image" content="https://doubleimpactstore.cl/img/LogoDoubleImpactStore_500.png">
+  <meta property="og:locale" content="es_CL">
+  <meta property="og:site_name" content="DoubleImpactStore">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Catálogo — DoubleImpactStore">
+  <meta name="twitter:description" content="Catálogo completo de videojuegos retro originales de DoubleImpactStore.">
+  <meta name="twitter:image" content="https://doubleimpactstore.cl/img/LogoDoubleImpactStore_500.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="img/LogoDoubleImpactStore_150.png" type="image/png">
+  <link rel="apple-touch-icon" href="img/LogoDoubleImpactStore_250.png">
+  <link rel="stylesheet" href="css/font-awesome_6.5.1_all.min.css?v=2026-08-18">
+  <link rel="stylesheet" href="css/style.min.css?v=2026-08-18">
+  <link rel="stylesheet" href="css/productos.min.css?v=2026-08-18">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Catálogo de productos",
+    "url": "https://doubleimpactstore.cl/productos",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "DoubleImpactStore",
+      "url": "https://doubleimpactstore.cl/"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "DoubleImpactStore",
+      "url": "https://doubleimpactstore.cl/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip_link">Saltar al contenido</a>
+
+  <div class="offline-indicator" id="offline-indicator" hidden>
+    <i class="fa-solid fa-wifi" aria-hidden="true"></i>
+    <span><strong data-i18n="offline.title">Estás sin conexión</strong> <span data-i18n="offline.text">Mostrando contenido guardado en la caché.</span></span>
+  </div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="DoubleImpactStore — Inicio">
+        <img class="brand-logo" src="img/LogoDoubleImpactStore_150.png" alt="Logo de DoubleImpactStore" width="40" height="40">
+        <span class="brand-name">DoubleImpactStore</span>
+      </a>
+      <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="main-nav">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      </button>
+      <nav id="main-nav" class="main-nav" aria-label="Navegación principal">
+        <ul>
+          <li><a href="index.html" data-nav="/" class="nav-link"><i class="fa-solid fa-house" aria-hidden="true"></i><span data-i18n="nav.home">Inicio</span></a></li>
+          <li><a href="productos.html" data-nav="/productos" class="nav-link"><i class="fa-solid fa-gamepad" aria-hidden="true"></i><span data-i18n="nav.products">Productos</span></a></li>
+          <li><a href="index.html#servicios" data-nav="/servicios" class="nav-link"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><span data-i18n="nav.services">Servicios</span></a></li>
+          <li><a href="index.html#blog" data-nav="/blog" class="nav-link"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span data-i18n="nav.blog">Blog</span></a></li>
+          <li><a href="index.html#contacto" data-nav="/contacto" class="nav-link"><i class="fa-solid fa-envelope" aria-hidden="true"></i><span data-i18n="nav.contact">Contacto</span></a></li>
+        </ul>
+      </nav>
+      <div class="header-controls">
+        <button id="theme-toggle" class="control-btn" aria-label="Activar modo claro">
+          <i class="fa-solid fa-moon icon-dark" aria-hidden="true"></i>
+          <i class="fa-solid fa-sun icon-light" aria-hidden="true"></i>
+        </button>
+        <button id="lang-toggle" class="control-btn lang-btn" aria-label="Cambiar idioma a Inglés">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Ruta de navegación">
+        <ol>
+          <li><a href="index.html" data-i18n="products.breadcrumb_home">Inicio</a></li>
+          <li aria-current="page" data-i18n="products.breadcrumb_products">Productos</li>
+        </ol>
+      </nav>
+
+      <h1 class="page-title" data-i18n="products.title">Catálogo</h1>
+
+      <div class="catalog-controls">
+        <div class="catalog-search">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <input type="search" id="catalog-search" placeholder="Buscar por nombre, número o plataforma..." data-i18n-placeholder="products.search_placeholder" aria-label="Buscar productos">
+        </div>
+        <div class="catalog-filters">
+          <fieldset class="platform-fieldset">
+            <legend data-i18n="products.filters_platform">Plataforma</legend>
+            <div id="platform-filters" class="platform-filters"></div>
+          </fieldset>
+          <label class="select-label" for="catalog-status">
+            <span data-i18n="products.filters_status">Estado</span>
+            <select id="catalog-status">
+              <option value="available" data-i18n="products.status_available">Disponibles</option>
+              <option value="all" data-i18n="products.status_all">Todos</option>
+              <option value="sold" data-i18n="products.status_sold">Vendidos</option>
+            </select>
+          </label>
+          <label class="select-label" for="catalog-sort">
+            <span data-i18n="products.sort_label">Ordenar por</span>
+            <select id="catalog-sort">
+              <option value="num:asc" data-i18n="products.sort_num">Número</option>
+              <option value="name:asc" data-i18n="products.sort_name">Nombre</option>
+              <option value="platform:asc" data-i18n="products.sort_platform">Plataforma</option>
+              <option value="neto:asc" data-i18n="products.sort_price">Precio</option>
+            </select>
+          </label>
+        </div>
+        <p id="catalog-status-area" class="catalog-status" role="status"></p>
+      </div>
+
+      <div id="catalog-container" class="catalog-container">
+        <div class="catalog-table-wrap">
+          <table class="catalog-table">
+            <caption class="visually-hidden" data-i18n="products.title">Catálogo</caption>
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="products.table_num">Nº</th>
+                <th scope="col" data-i18n="products.table_product">Producto</th>
+                <th scope="col" data-i18n="products.table_platform">Plataforma</th>
+                <th scope="col" data-i18n="products.table_price">Precio</th>
+                <th scope="col" data-i18n="products.table_stock">Stock</th>
+                <th scope="col" data-i18n="products.table_status">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="catalog-tbody"></tbody>
+          </table>
+        </div>
+        <p id="catalog-results" class="catalog-results" role="status"></p>
+        <nav id="catalog-pagination" class="pagination" aria-label="Paginación"></nav>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <img src="img/LogoDoubleImpactStore_150.png" alt="Logo de DoubleImpactStore" width="40" height="40">
+        <p class="footer-tagline" data-i18n="footer.tagline">Videojuegos retro originales y coleccionables.</p>
+      </div>
+      <nav class="footer-nav" aria-label="Enlaces">
+        <ul>
+          <li><a href="index.html" data-i18n="nav.home">Inicio</a></li>
+          <li><a href="productos.html" data-i18n="nav.products">Productos</a></li>
+          <li><a href="security-policy.html" data-i18n="nav.security">Seguridad</a></li>
+          <li><a href="security-acknowledgments.html" data-i18n="security.acknowledgments_title">Agradecimientos de seguridad</a></li>
+        </ul>
+      </nav>
+      <div class="footer-social">
+        <div class="social-links" data-social></div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <p>© 2026 DoubleImpactStore. <span data-i18n="footer.rights">Todos los derechos reservados.</span></p>
+      </div>
+    </div>
+  </footer>
+
+  <div class="modal" id="product-modal" hidden>
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
+      <button type="button" class="modal-close" aria-label="Cerrar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      <div id="product-modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="js/instagram_posts.min.js?v=2026-08-18"></script>
+  <script type="module" src="js/index.min.js?v=2026-08-18"></script>
+</body>
+</html>

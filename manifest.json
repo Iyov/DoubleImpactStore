@@ -1,0 +1,17 @@
+{
+  "name": "DoubleImpactStore",
+  "short_name": "DoubleImpactStore",
+  "description": "Tienda de videojuegos retro originales y coleccionables. Catálogo, servicios técnicos y más.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#E63946",
+  "lang": "es",
+  "categories": ["games", "shopping", "entertainment"],
+  "icons": [
+    { "src": "img/LogoDoubleImpactStore_150.png", "sizes": "150x150", "type": "image/png" },
+    { "src": "img/LogoDoubleImpactStore_250.png", "sizes": "250x250", "type": "image/png" },
+    { "src": "img/LogoDoubleImpactStore_500.png", "sizes": "500x500", "type": "image/png" }
+  ]
+}
