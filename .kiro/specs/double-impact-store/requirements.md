@@ -38,7 +38,7 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
 
 #### Acceptance Criteria
 
-1. THE DoubleImpactStore SHALL incluir una página principal (`index.html`) con secciones de hero, sobre nosotros, productos destacados, Instagram, efemérides, blog, testimonios, FAQ y contacto.
+1. THE DoubleImpactStore SHALL incluir una página principal (`index.html`) con secciones en el siguiente orden: hero, sobre nosotros, productos destacados, Instagram, efemérides, blog, testimonios, FAQ, servicios y contacto.
 2. THE DoubleImpactStore SHALL incluir una página de catálogo independiente (`productos.html`) accesible desde la URL `/productos`.
 3. THE DoubleImpactStore SHALL incluir una página de error personalizada (`404.html`) que se muestre cuando el usuario accede a una URL inexistente.
 4. THE DoubleImpactStore SHALL incluir una página de política de seguridad (`security-policy.html`) con información sobre divulgación responsable de vulnerabilidades.
@@ -308,7 +308,82 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
 
 ---
 
-### Requirement 20: Identidad de Marca DoubleImpactStore
+### Requirement 21: Navegación — Menú Completo y Ordenado
+
+**User Story:** Como visitante, quiero ver un menú de navegación completo con todos los ítems en el orden correcto y que los enlaces me lleven a las secciones correspondientes, para orientarme fácilmente en el sitio.
+
+#### Acceptance Criteria
+
+1. THE DoubleImpactStore SHALL mostrar en el menú de navegación principal los siguientes ítems en este orden exacto: Inicio, Nosotros, Productos, Instagram, Efemérides, Blog, Testimonios, FAQ, Servicios, Contacto.
+2. THE DoubleImpactStore SHALL hacer que el enlace "Productos" del menú navegue a la página `/productos` y los demás ítems naveguen mediante anchor links (`#nosotros`, `#instagram`, `#efemerides`, `#blog`, `#testimonios`, `#faq`, `#servicios`, `#contacto`) a sus secciones correspondientes en `index.html`.
+3. THE DoubleImpactStore SHALL mostrar todos los ítems del menú de manera visible en desktop sin overflow ni ítems ocultos, utilizando un tamaño de fuente y espaciado adecuados para que quepan en una sola línea.
+4. WHEN el usuario hace clic en un enlace de anchor del menú, THE DoubleImpactStore SHALL realizar scroll suave (`scroll-behavior: smooth`) hasta la sección correspondiente.
+5. THE DoubleImpactStore SHALL mostrar el logo de DoubleImpactStore en la parte superior izquierda del header, que al hacer clic devuelva al usuario al inicio de la página (`#top` o `href="/"`), comportándose igual que el botón "Volver Arriba".
+6. THE DoubleImpactStore SHALL incluir el ítem "Efemérides" en el menú de navegación, enlazando a la sección `#efemerides` de `index.html`.
+
+---
+
+### Requirement 22: Sección Contacto y Redes Sociales — Diseño con Íconos Grandes
+
+**User Story:** Como cliente, quiero ver la información de contacto y redes sociales con íconos grandes y texto descriptivo abajo, para identificar fácilmente cada canal de comunicación.
+
+#### Acceptance Criteria
+
+1. THE DoubleImpactStore SHALL mostrar en la sección de contacto íconos de Font Awesome de tamaño grande (mínimo 3rem / 48px) con el nombre o descripción del canal escrito debajo de cada ícono.
+2. THE DoubleImpactStore SHALL incluir los siguientes canales de contacto con sus URLs reales en la sección de contacto y en el footer:
+   - Instagram DoubleImpactStore: `https://www.instagram.com/doubleimpactstore/`
+   - Instagram @Ropavejero.Retro: `https://www.instagram.com/ropavejero.retro/`
+   - Instagram @NekketsuStore: `https://www.instagram.com/nekketsustore/`
+   - Threads: `https://www.threads.com/@doubleimpactstore/`
+   - Twitter/X: `https://x.com/DoubleImpactSpA`
+   - WhatsApp: `https://wa.me/56967691585`
+   - YouTube: `https://www.youtube.com/@DoubleImpactStoreSpA`
+3. THE DoubleImpactStore SHALL usar el layout de íconos + texto adoptado en RopavejeroRetro.cl: íconos centrados en columnas con el nombre/descripción del canal en texto debajo, sin texto inline al costado del ícono.
+4. THE DoubleImpactStore SHALL abrir todos los enlaces de redes sociales en una nueva pestaña (`target="_blank" rel="noopener noreferrer"`).
+5. THE DoubleImpactStore SHALL traducir los labels de los canales de contacto al idioma activo (ES/EN).
+
+---
+
+### Requirement 23: Barra de Progreso de Scroll
+
+**User Story:** Como visitante, quiero ver una barra de progreso en la parte superior de la página que indique cuánto he avanzado en el scroll, para saber en qué punto del contenido me encuentro.
+
+#### Acceptance Criteria
+
+1. THE DoubleImpactStore SHALL mostrar una barra de progreso fina (2–4px de alto) fijada en la parte superior del viewport, encima de todo el contenido (z-index alto).
+2. WHEN el usuario hace scroll hacia abajo, THE DoubleImpactStore SHALL actualizar el ancho de la barra de progreso proporcionalmente al porcentaje de la página que ha sido desplazado (0% en el inicio, 100% al llegar al final del documento).
+3. THE DoubleImpactStore SHALL animar la barra de progreso de forma fluida usando CSS `transition` o `width` calculado en el evento `scroll`.
+4. THE DoubleImpactStore SHALL usar el color de acento del tema activo (variable CSS `--accent-color` o `--primary-color`) para la barra de progreso, de modo que sea coherente con el diseño general.
+
+---
+
+### Requirement 24: Botón "Volver Arriba" (Back to Top)
+
+**User Story:** Como visitante, quiero tener un botón visible que me devuelva al inicio de la página cuando he bajado mucho, para no tener que hacer scroll manualmente hasta arriba.
+
+#### Acceptance Criteria
+
+1. THE DoubleImpactStore SHALL mostrar un botón "Volver Arriba" (back to top) que aparezca cuando el usuario ha hecho scroll hacia abajo más de 300px desde el inicio de la página.
+2. WHEN el usuario hace clic en el botón "Volver Arriba", THE DoubleImpactStore SHALL realizar scroll suave hasta el inicio de la página (`scrollTo({ top: 0, behavior: 'smooth' })`).
+3. THE DoubleImpactStore SHALL ocultar el botón "Volver Arriba" cuando el usuario está en la parte superior de la página (scroll < 300px), usando transición CSS suave (fade/slide).
+4. THE DoubleImpactStore SHALL posicionar el botón "Volver Arriba" en la esquina inferior derecha de la pantalla, de forma fija (`position: fixed`), por encima del contenido pero debajo del botón de WhatsApp.
+5. THE DoubleImpactStore SHALL implementar el botón con `aria-label="Volver al inicio"` y soporte de navegación por teclado.
+6. WHEN el usuario hace clic en el logo del header, THE DoubleImpactStore SHALL realizar la misma acción que el botón "Volver Arriba" (scroll suave al inicio de la página).
+
+---
+
+### Requirement 25: Botón Flotante de WhatsApp
+
+**User Story:** Como visitante, quiero tener acceso rápido al WhatsApp de la tienda desde cualquier punto de la página, para poder hacer consultas de forma inmediata.
+
+#### Acceptance Criteria
+
+1. THE DoubleImpactStore SHALL mostrar un botón flotante con el ícono de WhatsApp (Font Awesome `fa-whatsapp`) posicionado de forma fija en la esquina inferior derecha del viewport (`position: fixed`), siempre visible independientemente del scroll.
+2. THE DoubleImpactStore SHALL mostrar un tooltip con el texto "Comunícate con nosotros" al hacer hover sobre el botón flotante de WhatsApp.
+3. WHEN el usuario hace clic en el botón flotante de WhatsApp, THE DoubleImpactStore SHALL abrir el enlace `https://wa.me/56967691585` en una nueva pestaña.
+4. THE DoubleImpactStore SHALL implementar el botón flotante de WhatsApp con color verde (#25D366) y `aria-label` descriptivo para accesibilidad.
+5. THE DoubleImpactStore SHALL traducir el tooltip del botón de WhatsApp al idioma activo: "Comunícate con nosotros" (ES) / "Contact us" (EN).
+6. THE DoubleImpactStore SHALL posicionar el botón flotante de WhatsApp por encima del botón "Volver Arriba" cuando ambos estén visibles, sin superponerse visualmente.
 
 **User Story:** Como propietario de la tienda, quiero que toda la identidad visual y textual refleje exclusivamente la marca DoubleImpactStore, para tener una presencia de marca coherente y profesional.
 

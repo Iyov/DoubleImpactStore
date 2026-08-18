@@ -167,7 +167,121 @@ export function initFAQ(): void          // Accordion FAQ
 export function initBlogModals(): void   // Modales de blog
 export function initMobileMenu(): void   // Menú hamburguesa
 export function setNavActive(path: string): void
+
+// Nuevos componentes de navegación y utilidades
+export function initScrollProgress(): void   // Barra de progreso de scroll
+export function initBackToTop(): void        // Botón volver arriba
+export function initWhatsAppButton(): void   // Botón flotante WhatsApp
+export function initLogoBackToTop(): void    // Click en logo → scroll al inicio
 ```
+
+### Navegación — Orden y estructura de secciones
+
+El menú de navegación principal debe mostrar los ítems en el siguiente orden exacto, tanto en desktop como en el menú hamburguesa móvil:
+
+| Posición | Ítem | Destino |
+|---|---|---|
+| 1 | Inicio | `/` o `#top` |
+| 2 | Nosotros | `#nosotros` |
+| 3 | Productos | `/productos` (página separada) |
+| 4 | Instagram | `#instagram` |
+| 5 | Efemérides | `#efemerides` |
+| 6 | Blog | `#blog` |
+| 7 | Testimonios | `#testimonios` |
+| 8 | FAQ | `#faq` |
+| 9 | Servicios | `#servicios` |
+| 10 | Contacto | `#contacto` |
+
+**Consideraciones de layout del menú:**
+- En desktop (> 1024px): todos los ítems en una línea horizontal, font-size reducido (ej. 0.85rem) y `gap` compacto para que quepan sin overflow.
+- En tablet/móvil (≤ 1024px): menú hamburguesa con todos los ítems en columna vertical.
+- El logo en el header superior izquierdo funciona como enlace de "Volver Arriba" (scroll suave a `#top`).
+
+### Sección Contacto — Layout de íconos grandes
+
+La sección `#contacto` debe presentar los canales de redes sociales con el siguiente diseño:
+
+```
+[ÍCONO GRANDE]     [ÍCONO GRANDE]     [ÍCONO GRANDE]
+  Texto abajo        Texto abajo        Texto abajo
+```
+
+- Íconos de Font Awesome, tamaño mínimo 3rem (48px).
+- Texto descriptivo centrado debajo de cada ícono.
+- Layout en grid o flexbox con wrap, múltiples columnas en desktop, 2–3 columnas en móvil.
+- URLs reales de la tienda:
+
+| Canal | URL | Ícono FA |
+|---|---|---|
+| Instagram (DoubleImpactStore) | `https://www.instagram.com/doubleimpactstore/` | `fa-instagram` |
+| Instagram (@Ropavejero.Retro) | `https://www.instagram.com/ropavejero.retro/` | `fa-instagram` |
+| Instagram (@NekketsuStore) | `https://www.instagram.com/nekketsustore/` | `fa-instagram` |
+| Threads | `https://www.threads.com/@doubleimpactstore/` | `fa-threads` |
+| Twitter/X | `https://x.com/DoubleImpactSpA` | `fa-x-twitter` |
+| WhatsApp | `https://wa.me/56967691585` | `fa-whatsapp` |
+| YouTube | `https://www.youtube.com/@DoubleImpactStoreSpA` | `fa-youtube` |
+
+### Barra de Progreso de Scroll
+
+Elemento HTML fijo en la parte superior del viewport:
+
+```html
+<div id="scroll-progress" role="progressbar" aria-label="Progreso de lectura" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+```
+
+```css
+#scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: var(--accent-color);
+  z-index: 9999;
+  transition: width 0.1s linear;
+}
+```
+
+```javascript
+// js/modules/ui.js
+export function initScrollProgress() {
+  const bar = document.getElementById('scroll-progress');
+  window.addEventListener('scroll', () => {
+    const scrollTop = document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    bar.style.width = pct + '%';
+    bar.setAttribute('aria-valuenow', Math.round(pct));
+  }, { passive: true });
+}
+```
+
+### Botón "Volver Arriba" (Back to Top)
+
+```html
+<button id="back-to-top" aria-label="Volver al inicio" class="back-to-top-btn" hidden>
+  <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+</button>
+```
+
+- Posición: `position: fixed; bottom: 5rem; right: 1.5rem` (por encima del botón WhatsApp).
+- Visible solo cuando `scrollY > 300px`; oculto con transición `opacity/transform`.
+- Clic: `window.scrollTo({ top: 0, behavior: 'smooth' })`.
+
+### Botón Flotante de WhatsApp
+
+```html
+<a id="whatsapp-float" href="https://wa.me/56967691585" target="_blank" rel="noopener noreferrer"
+   aria-label="Comunícate con nosotros por WhatsApp" class="whatsapp-float-btn">
+  <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+  <span class="whatsapp-tooltip" data-i18n="whatsapp.tooltip">Comunícate con nosotros</span>
+</a>
+```
+
+- Posición: `position: fixed; bottom: 1.5rem; right: 1.5rem`.
+- Color de fondo: `#25D366` (verde WhatsApp).
+- Tooltip visible en `:hover` y `:focus`, traducido via `data-i18n`.
+- Siempre visible (no depende del scroll).
 
 #### `products.js`
 
@@ -798,20 +912,24 @@ fc.assert(fc.asyncProperty(
 
 | Test | Módulo | Criterio |
 |---|---|---|
-| index.html contiene todas las secciones requeridas | HTML estático | Req 1.1 |
+| index.html contiene todas las secciones requeridas en orden | HTML estático | Req 1.1, 21.1 |
 | Redirige a HTTPS cuando se accede por HTTP | .htaccess / servidor | Req 11.5 |
 | Idioma de localStorage se aplica al inicializar | `ui.js` | Req 3.5 |
 | Error de fetch muestra mensaje + botón reintentar | `products.js` | Req 4.8 |
 | Service Worker sigue patrón de nombre `doubleimpact-v*` | `service-worker.js` | Req 8.4 |
 | siglas.json tiene ≥ 40 entradas con campos es/en | Data file | Req 5.1 |
 | Ningún archivo contiene "RopavejeroRetro" | Todo el proyecto | Req 1.6, 20.2 |
+| Menú contiene exactamente 10 ítems en orden correcto | HTML estático | Req 21.1 |
+| Barra de progreso existe y tiene width=0 al inicio | `ui.js` | Req 23.1 |
+| Botón back-to-top existe y está oculto al inicio | `ui.js` | Req 24.1 |
+| Botón WhatsApp existe y apunta a wa.me/56967691585 | HTML estático | Req 25.3 |
 
 ### Tests E2E (Playwright)
 
 | Test | Escenario |
 |---|---|
-| Menú hamburguesa en viewport 375px | Req 2.1 |
-| Menú horizontal en viewport 1280px | Req 2.1 |
+| Menú hamburguesa en viewport 375px | Req 2.1, 21.3 |
+| Menú horizontal en viewport 1280px con todos los ítems visibles | Req 2.1, 21.3 |
 | Modo oscuro persiste entre recargas | Req 3.1 |
 | Cambio de idioma traduce todos los textos visibles | Req 3.3, 3.4 |
 | Filtro de plataforma en catálogo | Req 4.4 |
@@ -819,6 +937,15 @@ fc.assert(fc.asyncProperty(
 | Accordion FAQ colapsa items previos | Req 16.2 |
 | Lazy loading de imágenes de Instagram | Req 6.3 |
 | Navegación accesible por teclado (Tab, Enter, Esc) | Req 2.3 |
+| Clic en ítem del menú realiza scroll suave a sección | Req 21.4 |
+| Sección Efemérides existe y tiene id="efemerides" | Req 21.6, 13.1 |
+| Barra de progreso aumenta al hacer scroll | Req 23.2 |
+| Botón back-to-top aparece después de 300px de scroll | Req 24.1 |
+| Clic en back-to-top hace scroll al inicio | Req 24.2 |
+| Clic en logo hace scroll al inicio | Req 24.6, 21.5 |
+| Botón flotante WhatsApp siempre visible | Req 25.1 |
+| Tooltip de WhatsApp visible en hover | Req 25.2 |
+| Íconos de contacto tienen tamaño ≥ 48px | Req 22.1 |
 
 ### Smoke tests de infraestructura
 

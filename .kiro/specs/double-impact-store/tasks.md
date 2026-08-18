@@ -84,41 +84,59 @@ Tests E2E: **Playwright**
     - Para toda fecha-clave en el JSON, `getTodayEfemeride` debe retornar la entrada; para fechas sin clave, retornar `null`
     - Comentario: `// Feature: double-impact-store, Property 9: Efeméride correcta por fecha`
 
-- [x] 5. Implementar módulo `js/modules/ui.js`
-  - [x] 5.1 Implementar control de tema (claro/oscuro)
+- [ ] 5. Implementar módulo `js/modules/ui.js`
+  - [ ] 5.1 Implementar control de tema (claro/oscuro)
     - Exportar `initTheme()`, `setTheme(theme)`, `getTheme()`
     - `setTheme` debe: aplicar `data-theme` en `<html>`, persistir en `localStorage` bajo `dis_theme`
     - Default: `'dark'` si `localStorage` no tiene valor previo
     - _Requirements: 3.1, 3.2, 3.6_
-  - [x]* 5.2 Escribir property test para `ui.js` — Property 1
+  - [ ]* 5.2 Escribir property test para `ui.js` — Property 1
     - **Property 1: Invariante de tema y persistencia**
     - **Validates: Requirements 3.1, 3.2**
     - `fc.constantFrom('dark', 'light')` → verificar `document.documentElement.dataset.theme` y `localStorage.getItem('dis_theme')`
     - Comentario: `// Feature: double-impact-store, Property 1: Invariante de tema y persistencia`
-  - [x] 5.3 Implementar control de idioma y traducciones
+  - [ ] 5.3 Implementar control de idioma y traducciones
     - Exportar `initLang()`, `setLang(lang)`, `getLang()`, `t(key)`
     - Objeto de traducciones ES/EN con todas las cadenas de UI (nav, FAQ, testimonios, blog, catálogo, etc.)
+    - Incluir clave `"whatsapp.tooltip"`: ES = "Comunícate con nosotros", EN = "Contact us"
     - Aplicar traducciones al DOM recorriendo elementos con atributo `data-i18n`
     - Default: `'es'` si `localStorage` no tiene valor previo (clave `dis_lang`)
-    - _Requirements: 3.3, 3.4, 3.5, 3.6_
-  - [x]* 5.4 Escribir property test para `ui.js` — Property 2
+    - _Requirements: 3.3, 3.4, 3.5, 3.6, 25.5_
+  - [ ]* 5.4 Escribir property test para `ui.js` — Property 2
     - **Property 2: Cobertura bilingüe de traducciones**
     - **Validates: Requirements 3.3, 3.4**
     - Para toda clave registrada y todo idioma (`'es'` | `'en'`), `t(key)` debe retornar string no vacío
     - Comentario: `// Feature: double-impact-store, Property 2: Cobertura bilingüe de traducciones`
-  - [x] 5.5 Implementar componentes de UI: FAQ, modales de blog, menú móvil y navegación activa
+  - [ ] 5.5 Implementar componentes de UI: FAQ, modales de blog, menú móvil y navegación activa
     - Exportar `initFAQ()`, `initBlogModals()`, `initMobileMenu()`, `setNavActive(path)`
     - `initFAQ`: accordion con lógica de exactamente un ítem abierto a la vez; animación CSS suave
     - `initBlogModals`: abrir modal en clic, cerrar con Escape o clic fuera, restaurar foco
     - `setNavActive`: aplicar clase `.nav-active` exactamente al enlace cuyo `href` coincide con la ruta actual
     - _Requirements: 1.7, 14.2, 14.3, 16.1, 16.2, 16.3_
-  - [x]* 5.6 Escribir property test para `ui.js` — Property 7 y Property 10
+  - [ ]* 5.6 Escribir property test para `ui.js` — Property 7 y Property 10
     - **Property 7: Invariante de accordion FAQ (exactamente uno abierto)**
     - **Property 10: Marcado de navegación activa**
     - **Validates: Requirements 16.2, 1.7**
     - FAQ: después de hacer clic en cualquier ítem, exactamente uno queda abierto
     - Nav: `setNavActive(path)` aplica `.nav-active` solo al enlace correcto
     - Comentario: `// Feature: double-impact-store, Property 7 & 10`
+  - [ ] 5.7 Implementar barra de progreso de scroll
+    - Exportar `initScrollProgress()`
+    - Escuchar evento `scroll` (passive) y calcular: `(scrollTop / (scrollHeight - clientHeight)) * 100`
+    - Actualizar `width` del elemento `#scroll-progress` y `aria-valuenow`
+    - _Requirements: 23.1, 23.2, 23.3, 23.4_
+  - [ ] 5.8 Implementar botón "Volver Arriba" (back to top)
+    - Exportar `initBackToTop()`
+    - Mostrar botón `#back-to-top` cuando `scrollY > 300` usando clase CSS con transición opacity/transform
+    - Al hacer clic: `window.scrollTo({ top: 0, behavior: 'smooth' })`
+    - Vincular clic en el logo del header para que ejecute el mismo scroll al inicio
+    - Exportar `initLogoBackToTop()`
+    - _Requirements: 24.1, 24.2, 24.3, 24.4, 24.5, 24.6, 21.5_
+  - [ ] 5.9 Implementar botón flotante de WhatsApp
+    - Exportar `initWhatsAppButton()`
+    - El botón `#whatsapp-float` ya existe en el HTML; inicializar el tooltip traducido
+    - Traducir el tooltip `.whatsapp-tooltip` usando `t('whatsapp.tooltip')` al cargar y al cambiar idioma
+    - _Requirements: 25.1, 25.2, 25.3, 25.4, 25.5, 25.6_
 
 - [x] 6. Implementar módulo `js/modules/products.js`
   - [x] 6.1 Implementar carga de catálogo desde Google Sheets CSV
@@ -188,41 +206,51 @@ Tests E2E: **Playwright**
   - No contener lógica de negocio
   - _Requirements: 19.2, 19.3_
 
-- [x] 11. Crear CSS principal y de catálogo
-  - [x] 11.1 Crear `css/style.css` — estilos principales
+- [ ] 11. Crear CSS principal y de catálogo
+  - [ ] 11.1 Crear `css/style.css` — estilos principales
     - Variables CSS para modo oscuro/claro (colores, fuentes, espaciados)
     - Layout responsive con CSS Grid y Flexbox: breakpoints en 768px y 1024px
-    - Estilos para: header/nav, hero, secciones de índice (sobre nosotros, instagram, efemérides, blog, testimonios, FAQ, contacto), footer
+    - Estilos para: header/nav, hero, secciones de índice (nosotros, instagram, efemérides, blog, testimonios, FAQ, servicios, contacto), footer
     - Clases de tema: `[data-theme="dark"]` y `[data-theme="light"]` en `<html>`
     - Font Awesome 6.5.1 — referenciar el archivo local `css/font-awesome_6.5.1_all.min.css` (ya instalado, NO usar CDN externo)
-    - _Requirements: 2.1, 2.5, 3.1, 3.2_
-  - [x] 11.2 Crear `css/productos.css` — estilos del catálogo
+    - Menú de navegación: en desktop font-size compacto (≤ 0.9rem) y gap reducido para que quepan 10 ítems en una línea
+    - Sección contacto: grid/flexbox con íconos `font-size: 3rem` centrados, texto debajo de cada ícono
+    - Barra de progreso: `#scroll-progress { position: fixed; top: 0; height: 3px; width: 0%; background: var(--accent-color); z-index: 9999; }`
+    - Botón back-to-top: `position: fixed; bottom: 5rem; right: 1.5rem` con transición opacity/transform
+    - Botón flotante WhatsApp: `position: fixed; bottom: 1.5rem; right: 1.5rem; background: #25D366` con tooltip en hover/focus
+    - _Requirements: 2.1, 2.5, 3.1, 3.2, 21.3, 22.1, 22.3, 23.1, 24.4, 25.1, 25.2_
+  - [ ] 11.2 Crear `css/productos.css` — estilos del catálogo
     - Tabla de productos responsive; tarjetas en móvil y tabla en desktop
     - Estilos para filtros, paginación, modal de producto, tooltips de siglas, breadcrumb
     - _Requirements: 2.1, 4.6, 5.2, 5.3_
-  - [x] 11.3 Verificar minificación automática con `watcher.js`
+  - [ ] 11.3 Verificar minificación automática con `watcher.js`
     - Ejecutar `node watcher.js` una vez y comprobar que genera `style.min.css` y `productos.min.css`
     - Verificar reducción de tamaño ≥ 36%
     - _Requirements: 9.3_
 
-- [x] 12. Crear páginas HTML
-  - [x] 12.1 Crear `index.html` — página principal
+- [ ] 12. Crear páginas HTML
+  - [ ] 12.1 Crear `index.html` — página principal
     - Estructura semántica: `<header>`, `<nav>`, `<main>`, secciones con `<section>` y `<article>`, `<footer>`
-    - Secciones: hero, sobre nosotros, productos destacados, instagram, efemérides, blog (tarjetas con modal), testimonios, FAQ, servicios técnicos, contacto (redes sociales + WhatsApp + link al catálogo en Sheets + info de envíos)
+    - Secciones en orden exacto: `#hero`, `#nosotros`, `#productos-destacados`, `#instagram`, `#efemerides`, `#blog`, `#testimonios`, `#faq`, `#servicios`, `#contacto`
+    - Menú de navegación con 10 ítems en orden: Inicio, Nosotros, Productos, Instagram, Efemérides, Blog, Testimonios, FAQ, Servicios, Contacto
+    - El logo en el header lleva a `#top` (scroll al inicio)
+    - Barra de progreso de scroll: `<div id="scroll-progress">` fijada al tope del viewport
+    - Botón "Volver Arriba": `<button id="back-to-top">` con ícono `fa-chevron-up`, posición fixed bottom-right
+    - Botón flotante WhatsApp: `<a id="whatsapp-float" href="https://wa.me/56967691585">` con ícono `fa-whatsapp`, tooltip "Comunícate con nosotros", position fixed bottom-right por encima del back-to-top
+    - Sección `#contacto` con íconos grandes (≥3rem) + texto debajo: Instagram DoubleImpactStore, Instagram @Ropavejero.Retro, Instagram @NekketsuStore, Threads, Twitter/X, WhatsApp, YouTube con sus URLs reales
     - Meta tags completos: title, description, keywords, canonical, og:*, twitter:* (con dominio DoubleImpactStore)
     - Schema.org JSON-LD: `Store`, `Product`, `Service` (incluyendo `knowsAbout` para servicios técnicos y pulido de discos), `FAQPage`
     - Cargar Font Awesome local: `<link rel="stylesheet" href="css/font-awesome_6.5.1_all.min.css">` (NO CDN)
     - Integración GTM, GA4 y Cloudflare Analytics via `<script>` tags en `<head>` y al final del `<body>`
     - Cargar módulos JS con `type="module"` y query string de versión (ej. `?v=2026-08-17`)
-    - Ícono activo en nav: `setNavActive('/')` llamado desde `index.js`
-    - _Requirements: 1.1, 2.4, 10.1, 10.2, 10.3, 10.4, 10.7, 12.1, 12.2, 12.3, 14.1, 15.1, 16.1, 17.1, 17.2, 18.1, 18.2, 18.3, 18.4_
-  - [x] 12.2 Crear `productos.html` — página de catálogo
+    - _Requirements: 1.1, 2.4, 10.1, 10.2, 10.3, 10.4, 10.7, 12.1, 12.2, 12.3, 14.1, 15.1, 16.1, 17.1, 17.2, 18.1, 18.2, 18.3, 18.4, 21.1, 21.2, 21.3, 21.6, 22.1, 22.2, 23.1, 24.1, 25.1_
+  - [ ] 12.2 Crear `productos.html` — página de catálogo
     - Tabla/tarjetas de productos con controles de búsqueda, filtros y paginación
     - Breadcrumb de navegación
     - Meta tags y Schema.org correspondientes
     - Cargar `products.js`, `siglas.js`, `cache.js`, `utils.js` en orden correcto
     - _Requirements: 1.2, 4.9, 10.1, 10.2, 10.3, 10.7_
-  - [x] 12.3 Crear `404.html`, `security-policy.html` y `security-acknowledgments.html`
+  - [ ] 12.3 Crear `404.html`, `security-policy.html` y `security-acknowledgments.html`
     - `404.html`: diseño coherente con el sitio, enlace de vuelta al inicio
     - `security-policy.html`: política de divulgación responsable de vulnerabilidades
     - `security-acknowledgments.html`: lista de investigadores reconocidos
@@ -343,12 +371,95 @@ Tests E2E: **Playwright**
     - Test: lazy loading activo en imágenes de Instagram (atributo `loading="lazy"` presente)
     - _Requirements: 6.3, 16.2_
 
-- [x] 21. Checkpoint final de integración
-  - Verificar que `index.js` orquesta correctamente todos los módulos en el orden de dependencias
+- [ ] 21. Checkpoint final de integración
+  - Verificar que `index.js` orquesta correctamente todos los módulos en el orden de dependencias (incluyendo `initScrollProgress`, `initBackToTop`, `initLogoBackToTop`, `initWhatsAppButton`)
   - Confirmar que query strings de versión (`?v=...`) están presentes en todos los recursos estáticos referenciados en HTML
   - Confirmar que `productos.html` accesible desde URL limpia `/productos` (vía `.htaccess`)
   - Confirmar redirección HTTPS funciona en el entorno de despliegue
   - Asegurarse de que todo está integrado correctamente. Preguntar al usuario si hay dudas antes de concluir.
+
+- [ ] 22. Implementar navegación completa y ordenada
+  - [ ] 22.1 Asegurar que el menú de navegación tiene exactamente 10 ítems en el orden correcto
+    - Orden: Inicio (`/`), Nosotros (`#nosotros`), Productos (`/productos`), Instagram (`#instagram`), Efemérides (`#efemerides`), Blog (`#blog`), Testimonios (`#testimonios`), FAQ (`#faq`), Servicios (`#servicios`), Contacto (`#contacto`)
+    - En desktop: ajustar `font-size` (≤ 0.9rem) y `gap/padding` para que quepan en una sola línea sin overflow ni ítems ocultos
+    - En móvil: menú hamburguesa con todos los ítems en columna vertical
+    - _Requirements: 21.1, 21.2, 21.3_
+  - [ ] 22.2 Verificar que todos los anchor links del menú llevan a sus secciones correspondientes
+    - Confirmar que `index.html` tiene `<section id="nosotros">`, `<section id="instagram">`, `<section id="efemerides">`, `<section id="blog">`, `<section id="testimonios">`, `<section id="faq">`, `<section id="servicios">`, `<section id="contacto">`
+    - Confirmar que el CSS tiene `scroll-behavior: smooth` en `html` o que se aplica vía JS
+    - _Requirements: 21.2, 21.4_
+  - [ ] 22.3 Agregar sección Efemérides al HTML y al menú
+    - Verificar que existe `<section id="efemerides">` en `index.html`
+    - Verificar que el ítem "Efemérides" está presente en el menú apuntando a `#efemerides`
+    - _Requirements: 21.6, 13.1_
+  - [ ] 22.4 Vincular el logo del header al scroll al inicio
+    - El `<a>` o `<button>` que envuelve el logo en el header debe llamar a `initLogoBackToTop()` (scroll suave a `top: 0`)
+    - `href="/"` o `href="#top"` con `preventDefault` + `scrollTo({ top: 0, behavior: 'smooth' })`
+    - _Requirements: 21.5, 24.6_
+
+- [ ] 23. Implementar sección Contacto con íconos grandes
+  - [ ] 23.1 Actualizar HTML de la sección `#contacto` con layout de íconos grandes
+    - Cada canal de contacto: `<a>` con `<i class="fa-brands fa-...">` (3rem o mayor) y `<span>` con el nombre/descripción debajo
+    - Layout: CSS grid o flexbox con `justify-content: center; flex-wrap: wrap`
+    - URLs reales:
+      - Instagram DoubleImpactStore: `https://www.instagram.com/doubleimpactstore/`
+      - Instagram @Ropavejero.Retro: `https://www.instagram.com/ropavejero.retro/`
+      - Instagram @NekketsuStore: `https://www.instagram.com/nekketsustore/`
+      - Threads: `https://www.threads.com/@doubleimpactstore/`
+      - Twitter/X: `https://x.com/DoubleImpactSpA`
+      - WhatsApp: `https://wa.me/56967691585`
+      - YouTube: `https://www.youtube.com/@DoubleImpactStoreSpA`
+    - Todos los enlaces con `target="_blank" rel="noopener noreferrer"`
+    - Labels con `data-i18n` para traducción ES/EN
+    - _Requirements: 22.1, 22.2, 22.3, 22.4, 22.5, 18.1, 18.2_
+  - [ ] 23.2 Actualizar estilos CSS de la sección contacto
+    - `.contact-icon { font-size: 3rem; }` (mínimo 48px)
+    - `.contact-item { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }`
+    - `.contact-grid { display: flex; flex-wrap: wrap; gap: 2rem; justify-content: center; }`
+    - _Requirements: 22.1, 22.3_
+
+- [ ] 24. Implementar barra de progreso de scroll
+  - Agregar `<div id="scroll-progress" role="progressbar" aria-label="Progreso de lectura" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>` como primer hijo de `<body>` en `index.html`
+  - Implementar `initScrollProgress()` en `js/modules/ui.js`: escuchar `scroll` (passive), calcular `(scrollTop / totalScrollable) * 100`, actualizar `width` y `aria-valuenow`
+  - Agregar estilos CSS: `position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: var(--accent-color); z-index: 9999; transition: width 0.1s linear`
+  - Llamar `initScrollProgress()` desde `js/index.js` en `DOMContentLoaded`
+  - _Requirements: 23.1, 23.2, 23.3, 23.4_
+
+- [ ] 25. Implementar botón "Volver Arriba" y logo como back-to-top
+  - Agregar `<button id="back-to-top" aria-label="Volver al inicio" hidden><i class="fa-solid fa-chevron-up"></i></button>` antes del cierre de `</body>` en `index.html`
+  - Implementar `initBackToTop()` en `js/modules/ui.js`:
+    - Escuchar `scroll` (passive); mostrar/ocultar botón cuando `scrollY > 300` con transición CSS
+    - Al hacer clic: `window.scrollTo({ top: 0, behavior: 'smooth' })`
+  - Implementar `initLogoBackToTop()`: seleccionar el `<a>` del logo en el header y agregar listener para scroll al inicio con `preventDefault`
+  - Agregar estilos CSS: `position: fixed; bottom: 5rem; right: 1.5rem` con transición opacity/transform
+  - Llamar `initBackToTop()` y `initLogoBackToTop()` desde `js/index.js`
+  - _Requirements: 24.1, 24.2, 24.3, 24.4, 24.5, 24.6, 21.5_
+
+- [ ] 26. Implementar botón flotante de WhatsApp
+  - Agregar en `index.html` antes del cierre de `</body>`:
+    ```html
+    <a id="whatsapp-float" href="https://wa.me/56967691585" target="_blank" rel="noopener noreferrer"
+       aria-label="Comunícate con nosotros por WhatsApp" class="whatsapp-float-btn">
+      <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+      <span class="whatsapp-tooltip" data-i18n="whatsapp.tooltip">Comunícate con nosotros</span>
+    </a>
+    ```
+  - Agregar estilos CSS: `position: fixed; bottom: 1.5rem; right: 1.5rem; background: #25D366; border-radius: 50%; width: 3.5rem; height: 3.5rem; display: flex; align-items: center; justify-content: center; z-index: 9998`
+  - Tooltip: visible en `:hover` y `:focus` con CSS (position absolute, transform translateX(-100%))
+  - Agregar clave `"whatsapp.tooltip"` al objeto de traducciones en `ui.js`: ES = "Comunícate con nosotros", EN = "Contact us"
+  - Implementar `initWhatsAppButton()` para traducir el tooltip al cambiar idioma
+  - _Requirements: 25.1, 25.2, 25.3, 25.4, 25.5, 25.6_
+
+- [ ] 27. Checkpoint final — Tests actualizados con nuevas funcionalidades
+  - Ejecutar `vitest --run` y verificar que todos los tests pasan incluyendo los nuevos de `ui.js`
+  - Ejecutar smoke tests: `check-siglas.js`, `check-minification.js`, `check-manifest.js`
+  - Verificar visualmente que el menú tiene 10 ítems en el orden correcto
+  - Verificar que la barra de progreso aparece y se mueve al hacer scroll
+  - Verificar que el botón back-to-top aparece después de 300px y desaparece al volver arriba
+  - Verificar que el botón WhatsApp es siempre visible y el tooltip aparece en hover
+  - Verificar que los íconos de contacto son ≥ 3rem con texto debajo
+  - Verificar que el clic en el logo hace scroll suave al inicio
+  - _Requirements: 21–25_
 
 ---
 
@@ -362,3 +473,5 @@ Tests E2E: **Playwright**
 - Para correr los tests unitarios/PBT: `npm test` (alias de `vitest --run`)
 - Para correr los tests E2E: `npx playwright test`
 - Para iniciar el minificador en modo watch: `node watcher.js` (ejecutar manualmente en terminal)
+- Las tareas 22–26 implementan los nuevos requisitos 21–25 (navegación, contacto, scroll progress, back-to-top, WhatsApp flotante)
+- El botón WhatsApp (`bottom: 1.5rem`) está por debajo del botón back-to-top (`bottom: 5rem`) para no superponerse
