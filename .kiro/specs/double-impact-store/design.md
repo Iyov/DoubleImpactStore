@@ -175,51 +175,253 @@ export function initWhatsAppButton(): void   // Botón flotante WhatsApp
 export function initLogoBackToTop(): void    // Click en logo → scroll al inicio
 ```
 
-### Navegación — Orden y estructura de secciones
+### Navegación — Menú Solo-Íconos con Tooltip (Desktop) / Ícono+Texto (Móvil)
 
-El menú de navegación principal debe mostrar los ítems en el siguiente orden exacto, tanto en desktop como en el menú hamburguesa móvil:
+El menú de navegación desktop usa **solo íconos** con tooltip en hover para maximizar el espacio horizontal. El texto "DoubleImpactStore" se elimina del header — solo queda el logo imagen.
 
-| Posición | Ítem | Destino |
-|---|---|---|
-| 1 | Inicio | `/` o `#top` |
-| 2 | Nosotros | `#nosotros` |
-| 3 | Productos | `/productos` (página separada) |
-| 4 | Instagram | `#instagram` |
-| 5 | Efemérides | `#efemerides` |
-| 6 | Blog | `#blog` |
-| 7 | Testimonios | `#testimonios` |
-| 8 | FAQ | `#faq` |
-| 9 | Servicios | `#servicios` |
-| 10 | Contacto | `#contacto` |
+#### Header desktop
 
-**Consideraciones de layout del menú:**
-- En desktop (> 1024px): todos los ítems en una línea horizontal, font-size reducido (ej. 0.85rem) y `gap` compacto para que quepan sin overflow.
-- En tablet/móvil (≤ 1024px): menú hamburguesa con todos los ítems en columna vertical.
-- El logo en el header superior izquierdo funciona como enlace de "Volver Arriba" (scroll suave a `#top`).
+```html
+<header>
+  <!-- Logo SIN texto: solo la imagen -->
+  <a href="/" class="logo-link" aria-label="DoubleImpactStore — Volver al inicio">
+    <img src="img/LogoDoubleImpactStore_50%.png" alt="DoubleImpactStore" class="logo-img">
+    <!-- NO incluir <span>DoubleImpactStore</span> aquí -->
+  </a>
 
-### Sección Contacto — Layout de íconos grandes
+  <nav class="main-nav" aria-label="Navegación principal">
+    <ul class="nav-list">
+      <li><a href="/" class="nav-link" aria-label="Inicio" data-tooltip-i18n="nav.inicio">
+        <i class="fa-solid fa-house" aria-hidden="true"></i>
+      </a></li>
+      <li><a href="#nosotros" class="nav-link" aria-label="Nosotros" data-tooltip-i18n="nav.nosotros">
+        <i class="fa-solid fa-users" aria-hidden="true"></i>
+      </a></li>
+      <li><a href="/productos" class="nav-link" aria-label="Productos" data-tooltip-i18n="nav.productos">
+        <i class="fa-solid fa-gamepad" aria-hidden="true"></i>
+      </a></li>
+      <li><a href="#instagram" class="nav-link" aria-label="Instagram" data-tooltip-i18n="nav.instagram">
+        <i class="fa-brands fa-instagram" aria-hidden="true"></i>
+      </a></li>
+      <li><a href="#efemerides" class="nav-link" aria-label="Efemérides" data-tooltip-i18n="nav.efemerides">
+        <i class="fa-solid fa-calendar-day" aria-hidden="true"></i>
+      </a></li>
+      <li><a href="#blog" class="nav-link" aria-label="Blog" data-tooltip-i18n="nav.blog">
+        <i class="fa-solid fa-newspaper" aria-hidden="true"></i>
+      </a></li>
+      <li><a href="#testimonios" class="nav-link" aria-label="Testimonios" data-tooltip-i18n="nav.testimonios">
+        <i class="fa-solid fa-star" aria-hidden="true"></i>
+      </a></li>
+      <li><a href="#faq" class="nav-link" aria-label="FAQ" data-tooltip-i18n="nav.faq">
+        <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+      </a></li>
+      <li><a href="#servicios" class="nav-link" aria-label="Servicios" data-tooltip-i18n="nav.servicios">
+        <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+      </a></li>
+      <li><a href="#contacto" class="nav-link" aria-label="Contacto" data-tooltip-i18n="nav.contacto">
+        <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+      </a></li>
+    </ul>
+  </nav>
 
-La sección `#contacto` debe presentar los canales de redes sociales con el siguiente diseño:
-
+  <!-- Controles tema/idioma + hamburguesa -->
+</header>
 ```
-[ÍCONO GRANDE]     [ÍCONO GRANDE]     [ÍCONO GRANDE]
-  Texto abajo        Texto abajo        Texto abajo
+
+#### CSS del tooltip de navegación
+
+```css
+/* Solo íconos en desktop, tooltip en hover */
+.nav-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.6rem;
+  font-size: 1.1rem;
+}
+
+/* El texto se oculta visualmente pero está disponible para screen readers vía aria-label */
+.nav-link::after {
+  content: attr(aria-label);
+  position: absolute;
+  bottom: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--tooltip-bg, #333);
+  color: var(--tooltip-color, #fff);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 100;
+}
+
+.nav-link:hover::after,
+.nav-link:focus::after {
+  opacity: 1;
+}
+```
+
+#### Menú hamburguesa móvil (ícono + texto visible)
+
+En móvil el texto SÍ aparece junto al ícono porque no hay hover táctil:
+
+```css
+@media (max-width: 1024px) {
+  .nav-list {
+    flex-direction: column;
+  }
+  .nav-link::after {
+    display: none; /* Sin tooltip en móvil */
+  }
+  /* Agregar span con data-i18n dentro del <a> para el texto en móvil */
+  .nav-link .nav-text {
+    display: inline; /* Visible en móvil */
+  }
+}
+
+@media (min-width: 1025px) {
+  .nav-link .nav-text {
+    display: none; /* Oculto en desktop — solo ícono */
+  }
+}
+```
+
+#### Tabla de íconos por ítem
+
+| Posición | Ítem | Anchor / URL | Ícono Font Awesome |
+|---|---|---|---|
+| 1 | Inicio | `/` | `fa-solid fa-house` |
+| 2 | Nosotros | `#nosotros` | `fa-solid fa-users` |
+| 3 | Productos | `/productos` | `fa-solid fa-gamepad` |
+| 4 | Instagram | `#instagram` | `fa-brands fa-instagram` |
+| 5 | Efemérides | `#efemerides` | `fa-solid fa-calendar-day` |
+| 6 | Blog | `#blog` | `fa-solid fa-newspaper` |
+| 7 | Testimonios | `#testimonios` | `fa-solid fa-star` |
+| 8 | FAQ | `#faq` | `fa-solid fa-circle-question` |
+| 9 | Servicios | `#servicios` | `fa-solid fa-screwdriver-wrench` |
+| 10 | Contacto | `#contacto` | `fa-solid fa-envelope` |
+
+### Sección Contacto — Layout de íconos grandes (sin info de envíos)
+
+La sección `#contacto` presenta los canales de redes sociales como tarjetas con ícono + texto. **Se elimina completamente** cualquier texto sobre envíos o entregas presenciales.
+
+**Patrón HTML de referencia por tarjeta:**
+```html
+<a href="https://www.instagram.com/ropavejero.retro/" target="_blank" rel="noopener noreferrer" class="contact-card">
+  <i class="fab fa-instagram"></i>
+  <span data-translate="contact-instagram">Instagram</span>
+</a>
 ```
 
 - Íconos de Font Awesome, tamaño mínimo 3rem (48px).
-- Texto descriptivo centrado debajo de cada ícono.
-- Layout en grid o flexbox con wrap, múltiples columnas en desktop, 2–3 columnas en móvil.
-- URLs reales de la tienda:
+- Texto descriptivo centrado debajo de cada ícono, usando `data-translate` o `data-i18n`.
+- Layout: CSS grid o flexbox con wrap, múltiples columnas en desktop, 2–3 columnas en móvil.
+- **NO incluir** bloques de texto de envíos, encomiendas ni puntos de metro.
+
+URLs reales de la tienda:
 
 | Canal | URL | Ícono FA |
 |---|---|---|
-| Instagram (DoubleImpactStore) | `https://www.instagram.com/doubleimpactstore/` | `fa-instagram` |
-| Instagram (@Ropavejero.Retro) | `https://www.instagram.com/ropavejero.retro/` | `fa-instagram` |
-| Instagram (@NekketsuStore) | `https://www.instagram.com/nekketsustore/` | `fa-instagram` |
-| Threads | `https://www.threads.com/@doubleimpactstore/` | `fa-threads` |
-| Twitter/X | `https://x.com/DoubleImpactSpA` | `fa-x-twitter` |
-| WhatsApp | `https://wa.me/56967691585` | `fa-whatsapp` |
-| YouTube | `https://www.youtube.com/@DoubleImpactStoreSpA` | `fa-youtube` |
+| Instagram (DoubleImpactStore) | `https://www.instagram.com/doubleimpactstore/` | `fab fa-instagram` |
+| Instagram (@Ropavejero.Retro) | `https://www.instagram.com/ropavejero.retro/` | `fab fa-instagram` |
+| Instagram (@NekketsuStore) | `https://www.instagram.com/nekketsustore/` | `fab fa-instagram` |
+| Threads | `https://www.threads.com/@doubleimpactstore/` | `fab fa-threads` |
+| Twitter/X | `https://x.com/DoubleImpactSpA` | `fab fa-x-twitter` |
+| WhatsApp | `https://wa.me/56967691585` | `fab fa-whatsapp` |
+| YouTube | `https://www.youtube.com/@DoubleImpactStoreSpA` | `fab fa-youtube` |
+
+### Sección Efemérides — Implementación completa
+
+La sección `#efemerides` debe tener estructura HTML completa en `index.html`. El error crítico anterior fue que la sección estaba vacía o no existía — solo se veía el menú.
+
+**HTML requerido en `index.html`:**
+```html
+<section id="efemerides" aria-labelledby="efemerides-title">
+  <div class="section-header">
+    <i class="fa-solid fa-calendar-day" aria-hidden="true"></i>
+    <h2 id="efemerides-title" data-i18n="efemerides.title">Efemérides Gaming</h2>
+    <p class="efemerides-date" id="efemerides-date"></p>
+  </div>
+  <div id="efemerides-content" class="efemerides-card">
+    <!-- Contenido inyectado por efemerides.js -->
+    <p class="efemerides-loading" data-i18n="efemerides.loading">Cargando efeméride del día...</p>
+  </div>
+</section>
+```
+
+**HTML que inyecta `renderEfemeride()` en `#efemerides-content`:**
+```html
+<div class="efemeride-item">
+  <h3 class="efemeride-title"><!-- efemeride.ES.title o efemeride.EN.title --></h3>
+  <p class="efemeride-text"><!-- efemeride.ES.text o efemeride.EN.text --></p>
+  <details class="efemeride-details">
+    <summary data-i18n="efemerides.readMore">Leer más</summary>
+    <p class="efemeride-det"><!-- efemeride.ES.det o efemeride.EN.det --></p>
+  </details>
+</div>
+```
+
+**Flujo de carga en `js/index.js`:**
+```javascript
+// Dentro de DOMContentLoaded — obligatorio
+import { loadEfemerides, getTodayEfemeride, renderEfemeride } from './modules/efemerides.js';
+
+const efemeridesData = await loadEfemerides();           // fetch('./js/efemerides.json')
+const efemeride = getTodayEfemeride(efemeridesData);     // busca por "DD/MM"
+renderEfemeride(efemeride, document.getElementById('efemerides-content'), getLang());
+```
+
+**Lógica de `getTodayEfemeride`:**
+```javascript
+export function getTodayEfemeride(data, date = new Date()) {
+  const day   = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const key   = `${day}/${month}`;   // "18/08" — formato DD/MM
+  return data.efemerides.find(e => e.date === key) || null;
+}
+```
+
+### Sección Productos Destacados — Categorías por Fabricante
+
+La sección `#productos-destacados` muestra tarjetas por fabricante, no productos individuales:
+
+```html
+<section id="productos-destacados">
+  <h2 data-i18n="featured.title">Productos Destacados</h2>
+  <div class="featured-grid">
+    <a href="/productos" class="featured-card" data-i18n-label="featured.nintendo">
+      <i class="fa-solid fa-gamepad"></i>
+      <h3>Nintendo</h3>
+      <p>NES · SNES · N64 · GameCube · GameBoy/Color/Advance · Wii/U · DS · 3DS</p>
+    </a>
+    <a href="/productos" class="featured-card" data-i18n-label="featured.playstation">
+      <i class="fa-solid fa-circle-dot"></i>
+      <h3>PlayStation</h3>
+      <p>PS1 · PS2 · PSP · PS3 · PS4</p>
+    </a>
+    <a href="/productos" class="featured-card" data-i18n-label="featured.sega">
+      <i class="fa-solid fa-ghost"></i>
+      <h3>Sega</h3>
+      <p>Genesis · GameGear · Dreamcast</p>
+    </a>
+    <a href="/productos" class="featured-card" data-i18n-label="featured.xbox">
+      <i class="fa-brands fa-xbox"></i>
+      <h3>Xbox</h3>
+      <p>OG Classic · 360 · One</p>
+    </a>
+    <a href="/productos" class="featured-card" data-i18n-label="featured.otros">
+      <i class="fa-solid fa-microchip"></i>
+      <h3 data-i18n="featured.otros">Atari y más</h3>
+      <p data-i18n="featured.otros.desc">Otras plataformas retro</p>
+    </a>
+  </div>
+</section>
+```
 
 ### Barra de Progreso de Scroll
 

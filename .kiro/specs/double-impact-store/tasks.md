@@ -450,16 +450,98 @@ Tests E2E: **Playwright**
   - Implementar `initWhatsAppButton()` para traducir el tooltip al cambiar idioma
   - _Requirements: 25.1, 25.2, 25.3, 25.4, 25.5, 25.6_
 
-- [x] 27. Checkpoint final — Tests actualizados con nuevas funcionalidades
-  - Ejecutar `vitest --run` y verificar que todos los tests pasan incluyendo los nuevos de `ui.js`
-  - Ejecutar smoke tests: `check-siglas.js`, `check-minification.js`, `check-manifest.js`
-  - Verificar visualmente que el menú tiene 10 ítems en el orden correcto
-  - Verificar que la barra de progreso aparece y se mueve al hacer scroll
-  - Verificar que el botón back-to-top aparece después de 300px y desaparece al volver arriba
-  - Verificar que el botón WhatsApp es siempre visible y el tooltip aparece en hover
-  - Verificar que los íconos de contacto son ≥ 3rem con texto debajo
-  - Verificar que el clic en el logo hace scroll suave al inicio
-  - _Requirements: 21–25_
+- [ ] 28. Refactorizar menú: quitar texto "DoubleImpactStore" del header y cambiar a solo-íconos con tooltip
+  - [ ] 28.1 Eliminar el texto "DoubleImpactStore" del header en `index.html`
+    - Localizar el `<span>` o texto junto al logo en el `<header>` y eliminarlo
+    - Conservar únicamente la imagen del logo: `<img src="img/LogoDoubleImpactStore_50%.png" alt="DoubleImpactStore">`
+    - El `<a class="logo-link">` que envuelve el logo debe tener `aria-label="DoubleImpactStore — Volver al inicio"`
+    - _Requirements: 21.3_
+  - [ ] 28.2 Cambiar ítems del menú desktop a solo-ícono con tooltip CSS
+    - Reemplazar cada `<a>` del menú para que contenga: ícono FA + `<span class="nav-text" data-i18n="nav.X">Texto</span>`
+    - En desktop (> 1024px): `.nav-text { display: none }` — solo se ve el ícono
+    - En móvil (≤ 1024px): `.nav-text { display: inline }` — ícono + texto visibles en el hamburguesa
+    - Tooltip CSS en desktop: `.nav-link::after { content: attr(aria-label); ... }` visible en `:hover/:focus`
+    - Aplicar `aria-label` con el nombre de la sección a cada `<a>` para accesibilidad
+    - Íconos por ítem: Inicio=`fa-house`, Nosotros=`fa-users`, Productos=`fa-gamepad`, Instagram=`fa-brands fa-instagram`, Efemérides=`fa-calendar-day`, Blog=`fa-newspaper`, Testimonios=`fa-star`, FAQ=`fa-circle-question`, Servicios=`fa-screwdriver-wrench`, Contacto=`fa-envelope`
+    - _Requirements: 21.4, 21.5, 21.6, 21.9, 21.10_
+  - [ ] 28.3 Actualizar `css/style.css` con estilos del menú solo-íconos
+    - Ocultar `.nav-text` en desktop; mostrar en móvil
+    - Tooltip: `.nav-link { position: relative; } .nav-link::after { content: attr(aria-label); position: absolute; bottom: -2rem; ... opacity: 0; transition: opacity 0.2s; } .nav-link:hover::after, .nav-link:focus::after { opacity: 1; }`
+    - Ajustar `padding` del logo para que ocupe menos espacio sin el texto
+    - _Requirements: 21.4, 21.5_
+
+- [ ] 29. Implementar sección Efemérides completa (fix crítico — actualmente no muestra contenido)
+  - [ ] 29.1 Asegurar que `<section id="efemerides">` tiene estructura HTML completa en `index.html`
+    - La sección DEBE tener: título con `data-i18n`, párrafo de fecha con `id="efemerides-date"`, contenedor `id="efemerides-content"` con fallback de carga
+    - Estructura mínima requerida (ver diseño):
+      ```html
+      <section id="efemerides">
+        <h2 data-i18n="efemerides.title">Efemérides Gaming</h2>
+        <p id="efemerides-date"></p>
+        <div id="efemerides-content">
+          <p data-i18n="efemerides.loading">Cargando...</p>
+        </div>
+      </section>
+      ```
+    - _Requirements: 27.1, 13.4_
+  - [ ] 29.2 Corregir `js/modules/efemerides.js` para que cargue y renderice correctamente
+    - `loadEfemerides()`: usar `fetch('./js/efemerides.json')` — verificar que la ruta es correcta relativa a `index.html`
+    - `getTodayEfemeride(data)`: construir clave como `DD/MM` con `padStart(2,'0')` — NO usar `MM-DD`
+    - `renderEfemeride(efemeride, container, lang)`: inyectar HTML con título, texto y `<details>` expandible
+    - Si `efemeride === null`: `container.closest('section').style.display = 'none'`
+    - _Requirements: 27.2, 27.3, 27.4, 27.5, 13.5, 13.6_
+  - [ ] 29.3 Verificar que `js/index.js` llama a las funciones de efemérides
+    - Confirmar que `loadEfemerides()`, `getTodayEfemeride()` y `renderEfemeride()` son llamadas en `DOMContentLoaded`
+    - La llamada debe ser: `const data = await loadEfemerides(); const ef = getTodayEfemeride(data); renderEfemeride(ef, document.getElementById('efemerides-content'), getLang());`
+    - _Requirements: 27.2, 13.5_
+  - [ ] 29.4 Agregar ítem "Efemérides" al menú si no está presente
+    - Verificar que el menú tiene el enlace `<a href="#efemerides">` con ícono `fa-calendar-day`
+    - _Requirements: 27.6, 21.9_
+
+- [ ] 30. Actualizar sección Contacto: quitar info de envíos y aplicar patrón contact-card
+  - [ ] 30.1 Eliminar textos de envíos del HTML de la sección `#contacto`
+    - Buscar y eliminar cualquier texto o elemento que mencione: "Envíos: Enviamos a todo Chile por encomienda", "Entrega presencial", "puntos de metro de Santiago" o equivalentes
+    - No eliminar los enlaces de redes sociales ni el botón WhatsApp
+    - _Requirements: 18.4_
+  - [ ] 30.2 Aplicar patrón `.contact-card` a todos los enlaces de contacto
+    - Cada enlace debe seguir exactamente el patrón:
+      ```html
+      <a href="URL" target="_blank" rel="noopener noreferrer" class="contact-card">
+        <i class="fab fa-ICON"></i>
+        <span data-translate="contact-NOMBRE">Nombre</span>
+      </a>
+      ```
+    - Incluir: Instagram @doubleimpactstore, Instagram @Ropavejero.Retro, Instagram @NekketsuStore, Threads, Twitter/X, WhatsApp, YouTube
+    - _Requirements: 18.5, 22.1, 22.2, 22.3_
+  - [ ] 30.3 Agregar / actualizar estilos CSS de `.contact-card`
+    - `.contact-card { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 1.5rem; }`
+    - `.contact-card i { font-size: 3rem; }` (mínimo 48px)
+    - `.contact-card span { font-size: 0.9rem; text-align: center; }`
+    - Grid contenedor: `display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1.5rem;`
+    - _Requirements: 22.1, 22.3_
+
+- [ ] 31. Implementar sección Productos Destacados con categorías por fabricante
+  - Actualizar el HTML de `<section id="productos-destacados">` con las 5 tarjetas de categoría:
+    - Nintendo (NES, SNES, N64, GameCube, GameBoy/Color/Advance, Wii/U, DS, 3DS)
+    - PlayStation (PS1, PS2, PSP, PS3, PS4)
+    - Sega (Genesis, GameGear, Dreamcast)
+    - Xbox (OG Classic, 360, One)
+    - Atari y más
+  - Cada tarjeta: `<a href="/productos" class="featured-card">` con ícono, nombre del fabricante, lista de plataformas y `data-i18n` para el nombre
+  - CSS: grid responsive `repeat(auto-fit, minmax(180px, 1fr))`, tarjetas con hover effect
+  - Traducciones ES/EN para los nombres de categoría en `ui.js`
+  - _Requirements: 26.1, 26.2, 26.3, 26.4, 26.5_
+
+- [ ] 32. Checkpoint final iteración 2 — Verificar todos los cambios
+  - Verificar que el header no muestra el texto "DoubleImpactStore" — solo el logo imagen
+  - Verificar que el menú desktop muestra solo íconos y el tooltip aparece en hover
+  - Verificar que el menú hamburguesa móvil muestra ícono + texto
+  - Verificar que la sección `#efemerides` muestra contenido real (título, texto, detalle)
+  - Verificar que la sección `#contacto` NO tiene textos de envíos ni entregas presenciales
+  - Verificar que los enlaces de contacto usan el patrón `.contact-card` con íconos ≥ 3rem
+  - Verificar que la sección `#productos-destacados` tiene las 5 categorías (Nintendo, PlayStation, Sega, Xbox, Atari)
+  - Ejecutar `vitest --run` y confirmar que todos los tests pasan
+  - _Requirements: 21, 22, 26, 27_
 
 ---
 
@@ -473,5 +555,6 @@ Tests E2E: **Playwright**
 - Para correr los tests unitarios/PBT: `npm test` (alias de `vitest --run`)
 - Para correr los tests E2E: `npx playwright test`
 - Para iniciar el minificador en modo watch: `node watcher.js` (ejecutar manualmente en terminal)
-- Las tareas 22–26 implementan los nuevos requisitos 21–25 (navegación, contacto, scroll progress, back-to-top, WhatsApp flotante)
+- Las tareas 22–27 implementan los requisitos 21–25 de la iteración anterior
+- Las tareas 28–32 implementan los requisitos 21 (menú íconos), 26 (productos destacados), 27 (fix efemérides) y los cambios de contacto (Req 18.4–18.5)
 - El botón WhatsApp (`bottom: 1.5rem`) está por debajo del botón back-to-top (`bottom: 5rem`) para no superponerse

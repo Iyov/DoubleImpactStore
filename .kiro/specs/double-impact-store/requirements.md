@@ -222,6 +222,15 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
 1. WHEN el usuario visita la página principal, THE DoubleImpactStore SHALL mostrar la efeméride gaming correspondiente a la fecha actual, cargada desde `js/efemerides.json`.
 2. THE DoubleImpactStore SHALL mostrar la efeméride en el idioma activo del sitio (español o inglés).
 3. IF no existe una efeméride para la fecha actual, THEN THE DoubleImpactStore SHALL ocultar el componente de efemérides sin generar errores visibles.
+4. THE DoubleImpactStore SHALL implementar la sección `<section id="efemerides">` completamente en `index.html` con los siguientes sub-componentes visibles:
+   - Título de la sección ("Efemérides" / "Gaming History") con `data-i18n`
+   - Fecha del día formateada (ej. "18 de agosto" / "August 18")
+   - Título del evento (`efemeride.ES.title` o `efemeride.EN.title` según idioma activo)
+   - Texto breve del evento (`efemeride.ES.text` o `efemeride.EN.text`)
+   - Detalle expandible (`efemeride.ES.det` o `efemeride.EN.det`) con botón "Leer más" / "Read more"
+5. THE DoubleImpactStore SHALL llamar a `loadEfemerides()` y `renderEfemeride()` desde `js/index.js` dentro del evento `DOMContentLoaded`, garantizando que la sección se puebla con contenido real antes de que el usuario la vea.
+6. THE `renderEfemeride` function SHALL buscar la efeméride del día construyendo la clave de fecha como `DD/MM` (ej. `"18/08"` para el 18 de agosto), recorriendo el array `data.efemerides` hasta encontrar la entrada cuyo campo `date` coincida exactamente.
+7. THE DoubleImpactStore SHALL aplicar un estilo visual distinto a la sección efemérides (ej. tarjeta con borde de acento, ícono de calendario) que la haga recognocible visualmente en la página principal.
 
 ---
 
@@ -280,10 +289,17 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
 
 #### Acceptance Criteria
 
-1. THE DoubleImpactStore SHALL mostrar enlaces a todas las redes sociales de la tienda (Instagram, TikTok, YouTube, Facebook, Threads, Twitter/X) en el footer y sección de contacto.
+1. THE DoubleImpactStore SHALL mostrar enlaces a todas las redes sociales de la tienda (Instagram DoubleImpactStore, Instagram @Ropavejero.Retro, Instagram @NekketsuStore, Threads, Twitter/X, YouTube, WhatsApp) en el footer y sección de contacto.
 2. THE DoubleImpactStore SHALL incluir un enlace directo a WhatsApp para contacto inmediato.
 3. THE DoubleImpactStore SHALL incluir un enlace al catálogo en Google Sheets para que los usuarios descarguen la lista completa de productos.
-4. THE DoubleImpactStore SHALL mostrar información de envíos nacionales e información de lugar de entrega presencial en Santiago.
+4. THE DoubleImpactStore SHALL NOT mostrar información de envíos nacionales ni información de lugar de entrega presencial en Santiago en la sección de contacto — estos textos deben eliminarse completamente.
+5. THE DoubleImpactStore SHALL presentar cada canal de contacto usando el patrón de tarjeta con ícono grande centrado y texto debajo, siguiendo este HTML de referencia:
+   ```html
+   <a href="https://www.instagram.com/ropavejero.retro/" target="_blank" rel="noopener noreferrer" class="contact-card">
+     <i class="fab fa-instagram"></i>
+     <span data-translate="contact-instagram">Instagram</span>
+   </a>
+   ```
 
 ---
 
@@ -308,18 +324,37 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
 
 ---
 
-### Requirement 21: Navegación — Menú Completo y Ordenado
+### Requirement 21: Navegación — Menú Solo-Íconos con Tooltip y Logo Sin Texto
 
-**User Story:** Como visitante, quiero ver un menú de navegación completo con todos los ítems en el orden correcto y que los enlaces me lleven a las secciones correspondientes, para orientarme fácilmente en el sitio.
+**User Story:** Como visitante, quiero ver un menú de navegación compacto con íconos y tooltips en lugar de texto visible, para que quepan todos los ítems sin ocupar demasiado espacio horizontal.
 
 #### Acceptance Criteria
 
 1. THE DoubleImpactStore SHALL mostrar en el menú de navegación principal los siguientes ítems en este orden exacto: Inicio, Nosotros, Productos, Instagram, Efemérides, Blog, Testimonios, FAQ, Servicios, Contacto.
 2. THE DoubleImpactStore SHALL hacer que el enlace "Productos" del menú navegue a la página `/productos` y los demás ítems naveguen mediante anchor links (`#nosotros`, `#instagram`, `#efemerides`, `#blog`, `#testimonios`, `#faq`, `#servicios`, `#contacto`) a sus secciones correspondientes en `index.html`.
-3. THE DoubleImpactStore SHALL mostrar todos los ítems del menú de manera visible en desktop sin overflow ni ítems ocultos, utilizando un tamaño de fuente y espaciado adecuados para que quepan en una sola línea.
-4. WHEN el usuario hace clic en un enlace de anchor del menú, THE DoubleImpactStore SHALL realizar scroll suave (`scroll-behavior: smooth`) hasta la sección correspondiente.
-5. THE DoubleImpactStore SHALL mostrar el logo de DoubleImpactStore en la parte superior izquierda del header, que al hacer clic devuelva al usuario al inicio de la página (`#top` o `href="/"`), comportándose igual que el botón "Volver Arriba".
-6. THE DoubleImpactStore SHALL incluir el ítem "Efemérides" en el menú de navegación, enlazando a la sección `#efemerides` de `index.html`.
+3. THE DoubleImpactStore SHALL mostrar en el header únicamente el logo (imagen `img/LogoDoubleImpactStore_50%.png` o equivalente) SIN el texto "DoubleImpactStore" al lado — el texto ocupa espacio innecesario y debe eliminarse del header.
+4. THE DoubleImpactStore SHALL mostrar en los ítems del menú de navegación desktop únicamente el ícono de Font Awesome correspondiente a cada sección, SIN texto visible junto al ícono.
+5. WHEN el usuario pasa el mouse sobre un ítem del menú, THE DoubleImpactStore SHALL mostrar un tooltip con el nombre de la sección en el idioma activo (ES/EN), usando CSS puro (`:hover` + pseudo-elemento) o JS mínimo.
+6. THE DoubleImpactStore SHALL aplicar atributo `aria-label` con el nombre de la sección a cada ítem del menú para accesibilidad (lectores de pantalla).
+7. WHEN el usuario hace clic en un enlace de anchor del menú, THE DoubleImpactStore SHALL realizar scroll suave (`scroll-behavior: smooth`) hasta la sección correspondiente.
+8. THE DoubleImpactStore SHALL mostrar el logo de DoubleImpactStore en la parte superior izquierda del header; al hacer clic devuelve al inicio (`scrollTo({ top: 0, behavior: 'smooth' })`).
+9. THE DoubleImpactStore SHALL incluir el ítem "Efemérides" en el menú de navegación (ícono: `fa-calendar-day`), enlazando a la sección `#efemerides`.
+10. EN el menú hamburguesa móvil, THE DoubleImpactStore SHALL mostrar el ícono Y el texto de cada ítem (el texto es necesario en móvil porque no hay tooltips táctiles).
+
+#### Tabla de íconos por ítem de menú
+
+| Ítem | Anchor / URL | Ícono Font Awesome |
+|---|---|---|
+| Inicio | `/` | `fa-house` |
+| Nosotros | `#nosotros` | `fa-users` |
+| Productos | `/productos` | `fa-gamepad` |
+| Instagram | `#instagram` | `fa-instagram` |
+| Efemérides | `#efemerides` | `fa-calendar-day` |
+| Blog | `#blog` | `fa-newspaper` |
+| Testimonios | `#testimonios` | `fa-star` |
+| FAQ | `#faq` | `fa-circle-question` |
+| Servicios | `#servicios` | `fa-screwdriver-wrench` |
+| Contacto | `#contacto` | `fa-envelope` |
 
 ---
 
@@ -384,6 +419,44 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
 4. THE DoubleImpactStore SHALL implementar el botón flotante de WhatsApp con color verde (#25D366) y `aria-label` descriptivo para accesibilidad.
 5. THE DoubleImpactStore SHALL traducir el tooltip del botón de WhatsApp al idioma activo: "Comunícate con nosotros" (ES) / "Contact us" (EN).
 6. THE DoubleImpactStore SHALL posicionar el botón flotante de WhatsApp por encima del botón "Volver Arriba" cuando ambos estén visibles, sin superponerse visualmente.
+
+---
+
+### Requirement 26: Sección "Productos Destacados" — Categorías por Fabricante
+
+**User Story:** Como visitante, quiero ver una sección de productos destacados organizada por fabricante/plataforma, para identificar rápidamente las consolas disponibles en la tienda.
+
+#### Acceptance Criteria
+
+1. THE DoubleImpactStore SHALL mostrar en la sección `#productos-destacados` tarjetas o bloques visuales organizados por las siguientes categorías de fabricante, en este orden:
+   - **Nintendo**: NES, SNES, N64, GameCube, GameBoy / Color / Advance, Wii/U, DS, 3DS
+   - **PlayStation**: PS1 / PS2 / PSP / PS3 / PS4
+   - **Sega**: Genesis, GameGear, Dreamcast
+   - **Xbox**: OG Classic, 360, One
+   - **Atari y más**: otras plataformas retro
+2. WHEN el usuario hace clic en una categoría, THE DoubleImpactStore SHALL navegar a `/productos` (o mostrar un enlace al catálogo), permitiendo al usuario explorar los productos de esa plataforma.
+3. THE DoubleImpactStore SHALL mostrar el nombre de cada categoría en el idioma activo (ES/EN).
+4. THE DoubleImpactStore SHALL usar íconos de Font Awesome o texto estilizado para hacer visualmente distinguibles las categorías de fabricante.
+5. THE DoubleImpactStore SHALL mostrar las categorías en un layout de grid responsive (múltiples columnas en desktop, 1–2 columnas en móvil).
+
+---
+
+### Requirement 27: Implementación Completa de la Sección Efemérides (Fix Crítico)
+
+**User Story:** Como visitante, quiero ver la sección de Efemérides completamente implementada con contenido real, ya que actualmente solo aparece el menú de navegación pero la sección no muestra ningún contenido.
+
+#### Acceptance Criteria
+
+1. THE DoubleImpactStore SHALL garantizar que `<section id="efemerides">` existe en `index.html` con estructura HTML completa y un contenedor `id="efemerides-content"` donde se inyecta el contenido dinámico.
+2. THE DoubleImpactStore SHALL garantizar que `js/modules/efemerides.js` exporta `loadEfemerides()`, `getTodayEfemeride()` y `renderEfemeride()` y que las tres son llamadas en `js/index.js` dentro de `DOMContentLoaded`.
+3. THE DoubleImpactStore SHALL cargar `js/efemerides.json` usando `fetch('./js/efemerides.json')` o importación directa; la ruta debe ser correcta relativa al `index.html`.
+4. THE DoubleImpactStore SHALL buscar la efeméride del día usando el formato `"DD/MM"` (ej. `"18/08"` para el 18 de agosto), recorriendo `data.efemerides` hasta encontrar `entry.date === clave`.
+5. WHEN se encuentra la efeméride, THE DoubleImpactStore SHALL renderizar en `#efemerides-content`: título del evento, texto breve y detalle expandible con botón "Leer más" / "Read more".
+6. THE DoubleImpactStore SHALL agregar el ítem "Efemérides" al menú de navegación principal con ícono `fa-calendar-day`, apuntando a `#efemerides`.
+
+---
+
+### Requirement 20: Identidad de Marca DoubleImpactStore
 
 **User Story:** Como propietario de la tienda, quiero que toda la identidad visual y textual refleje exclusivamente la marca DoubleImpactStore, para tener una presencia de marca coherente y profesional.
 
