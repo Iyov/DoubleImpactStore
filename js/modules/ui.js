@@ -13,9 +13,14 @@ const translations = {
     'brand.name': 'DoubleImpactStore',
     'skip_link': 'Saltar al contenido',
     'nav.home': 'Inicio',
+    'nav.nosotros': 'Nosotros',
     'nav.products': 'Productos',
-    'nav.services': 'Servicios',
+    'nav.instagram': 'Instagram',
+    'nav.efemerides': 'Efemérides',
     'nav.blog': 'Blog',
+    'nav.testimonios': 'Testimonios',
+    'nav.faq': 'FAQ',
+    'nav.services': 'Servicios',
     'nav.contact': 'Contacto',
     'nav.security': 'Seguridad',
     'controls.lang': 'Cambiar idioma a Inglés',
@@ -111,6 +116,15 @@ const translations = {
     'contact.shipping_text': 'Enviamos a todo Chile por encomienda.',
     'contact.pickup': 'Entrega presencial',
     'contact.pickup_text': 'Entregas en puntos de metro de Santiago.',
+    'whatsapp.tooltip': 'Comunícate con nosotros',
+    'social.instagram1': 'Instagram DoubleImpactStore',
+    'social.instagram2': 'Instagram @Ropavejero.Retro',
+    'social.instagram3': 'Instagram @NekketsuStore',
+    'social.threads': 'Threads',
+    'social.x': 'Twitter / X',
+    'social.youtube': 'YouTube',
+    'social.whatsapp': 'WhatsApp',
+    'social.github': 'GitHub',
     'footer.tagline': 'Videojuegos retro originales y coleccionables.',
     'footer.rights': 'Todos los derechos reservados.',
     'footer.security': 'Política de seguridad',
@@ -166,9 +180,14 @@ const translations = {
     'brand.name': 'DoubleImpactStore',
     'skip_link': 'Skip to content',
     'nav.home': 'Home',
+    'nav.nosotros': 'About',
     'nav.products': 'Products',
-    'nav.services': 'Services',
+    'nav.instagram': 'Instagram',
+    'nav.efemerides': 'Anniversaries',
     'nav.blog': 'Blog',
+    'nav.testimonios': 'Testimonials',
+    'nav.faq': 'FAQ',
+    'nav.services': 'Services',
     'nav.contact': 'Contact',
     'nav.security': 'Security',
     'controls.lang': 'Switch to Spanish',
@@ -264,6 +283,15 @@ const translations = {
     'contact.shipping_text': 'We ship across Chile by courier.',
     'contact.pickup': 'In-person pickup',
     'contact.pickup_text': 'Delivery at Santiago metro stations.',
+    'whatsapp.tooltip': 'Contact us',
+    'social.instagram1': 'Instagram DoubleImpactStore',
+    'social.instagram2': 'Instagram @Ropavejero.Retro',
+    'social.instagram3': 'Instagram @NekketsuStore',
+    'social.threads': 'Threads',
+    'social.x': 'Twitter / X',
+    'social.youtube': 'YouTube',
+    'social.whatsapp': 'WhatsApp',
+    'social.github': 'GitHub',
     'footer.tagline': 'Original retro games and collectibles.',
     'footer.rights': 'All rights reserved.',
     'footer.security': 'Security policy',
@@ -553,6 +581,57 @@ export function initMobileMenu() {
   });
 }
 
+export function initScrollProgress() {
+  const bar = document.getElementById('scroll-progress');
+  if (!bar) return;
+  const update = () => {
+    const doc = document.documentElement;
+    const scrollTop = doc.scrollTop || window.scrollY || document.body.scrollTop || 0;
+    const max = doc.scrollHeight - doc.clientHeight;
+    const pct = max > 0 ? Math.min(100, Math.max(0, (scrollTop / max) * 100)) : 0;
+    bar.style.width = `${pct}%`;
+    bar.setAttribute('aria-valuenow', String(Math.round(pct)));
+  };
+  update();
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update, { passive: true });
+}
+
+export function initBackToTop() {
+  const btn = document.getElementById('back-to-top');
+  if (!btn) return;
+  const onScroll = () => {
+    btn.classList.toggle('show', window.scrollY > 300);
+  };
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
+
+export function initLogoBackToTop() {
+  const logo = document.querySelector('.brand');
+  if (!logo) return;
+  logo.addEventListener('click', (event) => {
+    if (getCurrentPath() === '/' && window.scrollY > 0) {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+}
+
+export function initWhatsAppButton() {
+  const float = document.getElementById('whatsapp-float');
+  if (!float) return;
+  const tooltip = float.querySelector('.whatsapp-tooltip');
+  const updateTooltip = () => {
+    if (tooltip) tooltip.textContent = t('whatsapp.tooltip');
+  };
+  updateTooltip();
+  window.addEventListener('dis:langchange', updateTooltip);
+}
+
 export function setNavActive(path) {
   const target = path || getCurrentPath();
   document.querySelectorAll('[data-nav]').forEach((link) => {
@@ -605,6 +684,10 @@ export function initUI() {
   initMobileMenu();
   initFAQ();
   initBlogModals();
+  initScrollProgress();
+  initBackToTop();
+  initLogoBackToTop();
+  initWhatsAppButton();
   initOfflineIndicator();
   renderSocialLinks(document.querySelectorAll('[data-social]'));
 }

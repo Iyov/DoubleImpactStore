@@ -44,7 +44,8 @@
   </script>
 </head>
 <body>
-  <a class="skip-link" href="#main" data-i18n="skip_link">Saltar al contenido</a>
+<div id="scroll-progress" class="scroll-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+<a class="skip-link" href="#main" data-i18n="skip_link">Saltar al contenido</a>
 
   <div class="offline-indicator" id="offline-indicator" hidden>
     <i class="fa-solid fa-wifi" aria-hidden="true"></i>
@@ -63,9 +64,14 @@
       <nav id="main-nav" class="main-nav" aria-label="Navegación principal">
         <ul>
           <li><a href="index.html" data-nav="/" class="nav-link"><i class="fa-solid fa-house" aria-hidden="true"></i><span data-i18n="nav.home">Inicio</span></a></li>
+          <li><a href="index.html#nosotros" data-nav="/nosotros" class="nav-link"><i class="fa-solid fa-users" aria-hidden="true"></i><span data-i18n="nav.nosotros">Nosotros</span></a></li>
           <li><a href="productos.html" data-nav="/productos" class="nav-link"><i class="fa-solid fa-gamepad" aria-hidden="true"></i><span data-i18n="nav.products">Productos</span></a></li>
-          <li><a href="index.html#servicios" data-nav="/servicios" class="nav-link"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><span data-i18n="nav.services">Servicios</span></a></li>
+          <li><a href="index.html#instagram" data-nav="/instagram" class="nav-link"><i class="fa-brands fa-instagram" aria-hidden="true"></i><span data-i18n="nav.instagram">Instagram</span></a></li>
+          <li><a href="index.html#efemerides" data-nav="/efemerides" class="nav-link"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i><span data-i18n="nav.efemerides">Efemérides</span></a></li>
           <li><a href="index.html#blog" data-nav="/blog" class="nav-link"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span data-i18n="nav.blog">Blog</span></a></li>
+          <li><a href="index.html#testimonios" data-nav="/testimonios" class="nav-link"><i class="fa-solid fa-comment-dots" aria-hidden="true"></i><span data-i18n="nav.testimonios">Testimonios</span></a></li>
+          <li><a href="index.html#faq" data-nav="/faq" class="nav-link"><i class="fa-solid fa-circle-question" aria-hidden="true"></i><span data-i18n="nav.faq">FAQ</span></a></li>
+          <li><a href="index.html#servicios" data-nav="/servicios" class="nav-link"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><span data-i18n="nav.services">Servicios</span></a></li>
           <li><a href="index.html#contacto" data-nav="/contacto" class="nav-link"><i class="fa-solid fa-envelope" aria-hidden="true"></i><span data-i18n="nav.contact">Contacto</span></a></li>
         </ul>
       </nav>
@@ -176,6 +182,14 @@
       <div id="product-modal-body" class="modal-body"></div>
     </div>
   </div>
+
+  <a class="whatsapp-float" id="whatsapp-float" href="https://wa.me/56967691585" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" data-track="whatsapp_float">
+    <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+    <span class="whatsapp-tooltip" data-i18n="whatsapp.tooltip">Comunícate con nosotros</span>
+  </a>
+  <button type="button" id="back-to-top" class="back-to-top" aria-label="Volver arriba">
+    <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+  </button>
 
   <script src="js/instagram_posts.min.js?v=2026-08-18"></script>
   <script type="module" src="js/index.min.js?v=2026-08-18"></script>

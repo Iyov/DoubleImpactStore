@@ -7,61 +7,64 @@ export const SOCIAL_LINKS = [
   {
     id: 'instagram1',
     icon: 'fa-brands fa-instagram',
-    label: 'Instagram @Ropavejero.Retro',
-    url: 'https://www.instagram.com/ropavejero.retro/'
+    label: 'Instagram DoubleImpactStore',
+    i18n: 'social.instagram1',
+    url: 'https://www.instagram.com/doubleimpactstore/'
   },
   {
     id: 'instagram2',
     icon: 'fa-brands fa-instagram',
-    label: 'Instagram @nekketsustore',
+    label: 'Instagram @Ropavejero.Retro',
+    i18n: 'social.instagram2',
+    url: 'https://www.instagram.com/ropavejero.retro/'
+  },
+  {
+    id: 'instagram3',
+    icon: 'fa-brands fa-instagram',
+    label: 'Instagram @NekketsuStore',
+    i18n: 'social.instagram3',
     url: 'https://www.instagram.com/nekketsustore/'
-  },
-  {
-    id: 'tiktok',
-    icon: 'fa-brands fa-tiktok',
-    label: 'TikTok',
-    url: ''
-  },
-  {
-    id: 'youtube',
-    icon: 'fa-brands fa-youtube',
-    label: 'YouTube',
-    url: ''
-  },
-  {
-    id: 'facebook',
-    icon: 'fa-brands fa-facebook',
-    label: 'Facebook',
-    url: ''
   },
   {
     id: 'threads',
     icon: 'fa-brands fa-threads',
     label: 'Threads',
-    url: ''
+    i18n: 'social.threads',
+    url: 'https://www.threads.com/@doubleimpactstore/'
   },
   {
     id: 'x',
     icon: 'fa-brands fa-x-twitter',
     label: 'Twitter / X',
-    url: ''
+    i18n: 'social.x',
+    url: 'https://x.com/DoubleImpactSpA'
+  },
+  {
+    id: 'youtube',
+    icon: 'fa-brands fa-youtube',
+    label: 'YouTube',
+    i18n: 'social.youtube',
+    url: 'https://www.youtube.com/@DoubleImpactStoreSpA'
   },
   {
     id: 'whatsapp',
     icon: 'fa-brands fa-whatsapp',
     label: 'WhatsApp',
-    url: '' // Pendiente: configurar el número en formato https://wa.me/569XXXXXXXX
+    i18n: 'social.whatsapp',
+    url: 'https://wa.me/56967691585'
   },
   {
     id: 'catalog',
     icon: 'fa-solid fa-table-list',
     label: 'Catálogo Google Sheets',
+    i18n: 'contact.catalog',
     url: 'https://docs.google.com/spreadsheets/d/1ekyKZHhUIwQDFtqEblnJN_5SNeYEqOlKOja1wnCutLY'
   },
   {
     id: 'github',
     icon: 'fa-brands fa-github',
     label: 'GitHub',
+    i18n: 'social.github',
     url: 'https://github.com/Iyov/DoubleImpactStore'
   }
 ];
@@ -71,15 +74,26 @@ export function renderSocialLinks(containers) {
   containers.forEach((container) => {
     if (!container) return;
     container.innerHTML = '';
+    const labeled = container.getAttribute('data-social') === 'labeled';
     const links = SOCIAL_LINKS.filter((item) => item.url && item.url.trim() !== '');
     links.forEach((item) => {
       const anchor = document.createElement('a');
-      anchor.className = 'social-link';
+      anchor.className = labeled ? 'contact-item' : 'social-link';
       anchor.href = item.url;
       anchor.target = '_blank';
       anchor.rel = 'noopener noreferrer';
       anchor.setAttribute('aria-label', item.label);
-      anchor.innerHTML = `<i class="${item.icon}" aria-hidden="true"></i>`;
+      const icon = document.createElement('i');
+      icon.className = labeled ? `contact-icon ${item.icon}` : item.icon;
+      icon.setAttribute('aria-hidden', 'true');
+      anchor.appendChild(icon);
+      if (labeled) {
+        const label = document.createElement('span');
+        label.className = 'contact-label';
+        if (item.i18n) label.setAttribute('data-i18n', item.i18n);
+        label.textContent = item.label;
+        anchor.appendChild(label);
+      }
       container.appendChild(anchor);
     });
   });

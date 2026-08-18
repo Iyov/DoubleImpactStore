@@ -6,8 +6,8 @@ test.describe('Página principal', () => {
     await page.goto('/');
     await expect(page).toHaveTitle(/DoubleImpactStore/);
     await expect(page.locator('.hero-title')).toContainText('DoubleImpactStore');
-    await expect(page.locator('#sobre')).toBeVisible();
-    await expect(page.locator('#destacados')).toBeVisible();
+    await expect(page.locator('#nosotros')).toBeVisible();
+    await expect(page.locator('#productos-destacados')).toBeVisible();
     await expect(page.locator('#instagram')).toBeVisible();
     await expect(page.locator('#blog .blog-card')).toHaveCount(3);
     await expect(page.locator('#faq .faq-item')).toHaveCount(7);

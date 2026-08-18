@@ -125,6 +125,7 @@
   </script>
 </head>
 <body>
+  <div id="scroll-progress" class="scroll-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
   <a class="skip-link" href="#main" data-i18n="skip_link">Saltar al contenido</a>
 
   <div class="offline-indicator" id="offline-indicator" hidden>
@@ -144,9 +145,14 @@
       <nav id="main-nav" class="main-nav" aria-label="Navegación principal">
         <ul>
           <li><a href="index.html" data-nav="/" class="nav-link"><i class="fa-solid fa-house" aria-hidden="true"></i><span data-i18n="nav.home">Inicio</span></a></li>
+          <li><a href="index.html#nosotros" data-nav="/nosotros" class="nav-link"><i class="fa-solid fa-users" aria-hidden="true"></i><span data-i18n="nav.nosotros">Nosotros</span></a></li>
           <li><a href="productos.html" data-nav="/productos" class="nav-link"><i class="fa-solid fa-gamepad" aria-hidden="true"></i><span data-i18n="nav.products">Productos</span></a></li>
-          <li><a href="index.html#servicios" data-nav="/servicios" class="nav-link"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><span data-i18n="nav.services">Servicios</span></a></li>
+          <li><a href="index.html#instagram" data-nav="/instagram" class="nav-link"><i class="fa-brands fa-instagram" aria-hidden="true"></i><span data-i18n="nav.instagram">Instagram</span></a></li>
+          <li><a href="index.html#efemerides" data-nav="/efemerides" class="nav-link"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i><span data-i18n="nav.efemerides">Efemérides</span></a></li>
           <li><a href="index.html#blog" data-nav="/blog" class="nav-link"><i class="fa-solid fa-newspaper" aria-hidden="true"></i><span data-i18n="nav.blog">Blog</span></a></li>
+          <li><a href="index.html#testimonios" data-nav="/testimonios" class="nav-link"><i class="fa-solid fa-comment-dots" aria-hidden="true"></i><span data-i18n="nav.testimonios">Testimonios</span></a></li>
+          <li><a href="index.html#faq" data-nav="/faq" class="nav-link"><i class="fa-solid fa-circle-question" aria-hidden="true"></i><span data-i18n="nav.faq">FAQ</span></a></li>
+          <li><a href="index.html#servicios" data-nav="/servicios" class="nav-link"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i><span data-i18n="nav.services">Servicios</span></a></li>
           <li><a href="index.html#contacto" data-nav="/contacto" class="nav-link"><i class="fa-solid fa-envelope" aria-hidden="true"></i><span data-i18n="nav.contact">Contacto</span></a></li>
         </ul>
       </nav>
@@ -161,7 +167,7 @@
   </header>
 
   <main id="main">
-    <section class="hero" aria-labelledby="hero-title">
+    <section id="hero" class="hero" aria-labelledby="hero-title">
       <div class="container hero-inner">
         <div class="hero-content">
           <span class="hero-badge"><i class="fa-solid fa-gamepad" aria-hidden="true"></i> <span data-i18n="hero.badge">Videojuegos retro originales y coleccionables</span></span>
@@ -176,7 +182,7 @@
       </div>
     </section>
 
-    <section id="sobre" class="section" aria-labelledby="about-title">
+    <section id="nosotros" class="section" aria-labelledby="about-title">
       <div class="container">
         <h2 id="about-title" class="section-title" data-i18n="about.title">Sobre nosotros</h2>
         <div class="about-grid">
@@ -187,7 +193,7 @@
       </div>
     </section>
 
-    <section id="destacados" class="section section--alt" aria-labelledby="featured-title">
+    <section id="productos-destacados" class="section section--alt" aria-labelledby="featured-title">
       <div class="container">
         <h2 id="featured-title" class="section-title" data-i18n="featured.title">Productos destacados</h2>
         <p class="section-subtitle" data-i18n="featured.subtitle">Explora el catálogo completo en Google Sheets</p>
@@ -286,6 +292,42 @@
       </div>
     </section>
 
+    <section id="faq" class="section section--alt" aria-labelledby="faq-title">
+      <div class="container">
+        <h2 id="faq-title" class="section-title" data-i18n="faq.title">Preguntas frecuentes</h2>
+        <div class="faq-accordion">
+          <div class="faq-item">
+            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q1" aria-expanded="false" aria-controls="faq-a1" data-i18n="faq.q1">¿Hacen envíos a todo Chile?</button></h3>
+            <div class="faq-answer" id="faq-a1" role="region" aria-labelledby="faq-q1" data-i18n="faq.a1">Sí. Enviamos a todas las regiones por encomienda.</div>
+          </div>
+          <div class="faq-item">
+            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q2" aria-expanded="false" aria-controls="faq-a2" data-i18n="faq.q2">¿Qué significan las siglas en los nombres de los productos?</button></h3>
+            <div class="faq-answer" id="faq-a2" role="region" aria-labelledby="faq-q2" data-i18n="faq.a2">Describen el estado físico del juego.</div>
+          </div>
+          <div class="faq-item">
+            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q3" aria-expanded="false" aria-controls="faq-a3" data-i18n="faq.q3">¿Los juegos son originales?</button></h3>
+            <div class="faq-answer" id="faq-a3" role="region" aria-labelledby="faq-q3" data-i18n="faq.a3">Sí. Todos los productos del catálogo son originales.</div>
+          </div>
+          <div class="faq-item">
+            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q4" aria-expanded="false" aria-controls="faq-a4" data-i18n="faq.q4">¿Hacen servicio técnico de consolas retro?</button></h3>
+            <div class="faq-answer" id="faq-a4" role="region" aria-labelledby="faq-q4" data-i18n="faq.a4">Sí. Ofrecemos diagnóstico, reparación, limpieza y cambio de condensadores.</div>
+          </div>
+          <div class="faq-item">
+            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q5" aria-expanded="false" aria-controls="faq-a5" data-i18n="faq.q5">¿Pulen discos rayados?</button></h3>
+            <div class="faq-answer" id="faq-a5" role="region" aria-labelledby="faq-q5" data-i18n="faq.a5">Sí. Pulido profesional para PS1, PS2, Xbox, GameCube y Wii.</div>
+          </div>
+          <div class="faq-item">
+            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q6" aria-expanded="false" aria-controls="faq-a6" data-i18n="faq.q6">¿Cómo compro un producto del catálogo?</button></h3>
+            <div class="faq-answer" id="faq-a6" role="region" aria-labelledby="faq-q6" data-i18n="faq.a6">Escríbenos por WhatsApp indicando el número del producto.</div>
+          </div>
+          <div class="faq-item">
+            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q7" aria-expanded="false" aria-controls="faq-a7" data-i18n="faq.q7">¿Dónde hacen entregas presenciales?</button></h3>
+            <div class="faq-answer" id="faq-a7" role="region" aria-labelledby="faq-q7" data-i18n="faq.a7">Entregamos en puntos de metro de Santiago.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section id="servicios" class="section" aria-labelledby="services-title">
       <div class="container">
         <h2 id="services-title" class="section-title" data-i18n="services.title">Servicios técnicos</h2>
@@ -325,50 +367,14 @@
       </div>
     </section>
 
-    <section id="faq" class="section section--alt" aria-labelledby="faq-title">
-      <div class="container">
-        <h2 id="faq-title" class="section-title" data-i18n="faq.title">Preguntas frecuentes</h2>
-        <div class="faq-accordion">
-          <div class="faq-item">
-            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q1" aria-expanded="false" aria-controls="faq-a1" data-i18n="faq.q1">¿Hacen envíos a todo Chile?</button></h3>
-            <div class="faq-answer" id="faq-a1" role="region" aria-labelledby="faq-q1" data-i18n="faq.a1">Sí. Enviamos a todas las regiones por encomienda.</div>
-          </div>
-          <div class="faq-item">
-            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q2" aria-expanded="false" aria-controls="faq-a2" data-i18n="faq.q2">¿Qué significan las siglas en los nombres de los productos?</button></h3>
-            <div class="faq-answer" id="faq-a2" role="region" aria-labelledby="faq-q2" data-i18n="faq.a2">Describen el estado físico del juego.</div>
-          </div>
-          <div class="faq-item">
-            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q3" aria-expanded="false" aria-controls="faq-a3" data-i18n="faq.q3">¿Los juegos son originales?</button></h3>
-            <div class="faq-answer" id="faq-a3" role="region" aria-labelledby="faq-q3" data-i18n="faq.a3">Sí. Todos los productos del catálogo son originales.</div>
-          </div>
-          <div class="faq-item">
-            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q4" aria-expanded="false" aria-controls="faq-a4" data-i18n="faq.q4">¿Hacen servicio técnico de consolas retro?</button></h3>
-            <div class="faq-answer" id="faq-a4" role="region" aria-labelledby="faq-q4" data-i18n="faq.a4">Sí. Ofrecemos diagnóstico, reparación, limpieza y cambio de condensadores.</div>
-          </div>
-          <div class="faq-item">
-            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q5" aria-expanded="false" aria-controls="faq-a5" data-i18n="faq.q5">¿Pulen discos rayados?</button></h3>
-            <div class="faq-answer" id="faq-a5" role="region" aria-labelledby="faq-q5" data-i18n="faq.a5">Sí. Pulido profesional para PS1, PS2, Xbox, GameCube y Wii.</div>
-          </div>
-          <div class="faq-item">
-            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q6" aria-expanded="false" aria-controls="faq-a6" data-i18n="faq.q6">¿Cómo compro un producto del catálogo?</button></h3>
-            <div class="faq-answer" id="faq-a6" role="region" aria-labelledby="faq-q6" data-i18n="faq.a6">Escríbenos por WhatsApp indicando el número del producto.</div>
-          </div>
-          <div class="faq-item">
-            <h3 class="faq-question-wrap"><button type="button" class="faq-question" id="faq-q7" aria-expanded="false" aria-controls="faq-a7" data-i18n="faq.q7">¿Dónde hacen entregas presenciales?</button></h3>
-            <div class="faq-answer" id="faq-a7" role="region" aria-labelledby="faq-q7" data-i18n="faq.a7">Entregamos en puntos de metro de Santiago.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <section id="contacto" class="section" aria-labelledby="contact-title">
       <div class="container">
         <h2 id="contact-title" class="section-title" data-i18n="contact.title">Contacto</h2>
         <p class="section-subtitle" data-i18n="contact.subtitle">Encuéntranos en redes sociales, WhatsApp o el catálogo.</p>
-        <div class="contact-grid">
+        <div class="contact-blocks">
           <div class="contact-block">
             <h3 data-i18n="contact.follow">Síguenos</h3>
-            <div class="social-links" data-social></div>
+            <div class="contact-grid" data-social="labeled"></div>
           </div>
           <div class="contact-block">
             <h3 data-i18n="contact.shipping">Envíos</h3>
@@ -423,6 +429,14 @@
       <div id="blog-modal-body" class="modal-body"></div>
     </div>
   </div>
+
+  <a class="whatsapp-float" id="whatsapp-float" href="https://wa.me/56967691585" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" data-track="whatsapp_float">
+    <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+    <span class="whatsapp-tooltip" data-i18n="whatsapp.tooltip">Comunícate con nosotros</span>
+  </a>
+  <button type="button" id="back-to-top" class="back-to-top" aria-label="Volver arriba">
+    <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+  </button>
 
   <script src="js/instagram_posts.min.js?v=2026-08-18"></script>
   <script type="module" src="js/index.min.js?v=2026-08-18"></script>
