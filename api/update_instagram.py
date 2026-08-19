@@ -19,188 +19,433 @@ Salidas:
 Si el token es inválido/expirado, termina con código de salida 1.
 """
 
-import json
 import os
-import re
-import sys
-from datetime import date, datetime
-
+import json
 import requests
+import re
+from datetime import datetime
 from PIL import Image
 
-API_BASE = "https://graph.instagram.com/v21.0"
-HASHTAG = "DoubleImpactStoreWeb"
-IMAGE_SIZES = (400, 800, 1200)
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MAX_SAVED_POSTS = 40
 
+def detect_instagram_error(payload):
+    """Detecta si la respuesta de Instagram indica un token expirado o inválido."""
+    error = payload.get('error', {}) if isinstance(payload, dict) else {}
+    message = error.get('message', '')
+    error_type = error.get('type', '')
+    code = error.get('code')
 
-def fail(message):
-    print(f"[update_instagram] ERROR: {message}", file=sys.stderr)
-    sys.exit(1)
+    if error_type == 'OAuthException' and code == 190:
+        return {
+            'is_expired_token': True,
+            'message': 'El token de Instagram ha expirado o es inválido. Renueva el token y vuelve a ejecutar el script.'
+        }
 
+    if 'access token' in message.lower() or 'token' in message.lower():
+        return {
+            'is_expired_token': True,
+            'message': message or 'El token de Instagram ha expirado o es inválido.'
+        }
 
-def api_get(path, params):
-    params["access_token"] = os.environ["INSTAGRAM_TOKEN"]
-    res = requests.get(f"{API_BASE}{path}", params=params, timeout=30)
-    if res.status_code != 200:
-        raise RuntimeError(f"API HTTP {res.status_code}: {res.text}")
-    return res.json()
+    return {
+        'is_expired_token': False,
+        'message': message or 'Error inesperado al consultar Instagram.'
+    }
 
+# Intentar leer .env localmente si existe
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # Fallback manual si python-dotenv no está instalado
+    if os.path.exists('.env'):
+        with open('.env') as f:
+            for line in f:
+                line = line.strip()
+                if line and '=' in line and not line.startswith('#'):
+                    key, value = line.split('=', 1)
+                    os.environ.setdefault(key.strip(), value.strip())
 
-def get_user_id():
-    data = api_get("/me", {"fields": "id,username"})
-    return data.get("id"), data.get("username")
+# CONFIGURACIÓN
+ACCESS_TOKEN = os.getenv('INSTAGRAM_TOKEN')
+HASHTAG_FILTER = '#DoubleImpactStoreWeb'
+JS_FILE_PATH = 'js/instagram_posts.js'
+MIN_JS_FILE_PATH = 'js/instagram_posts.min.js'
+INDEX_FILE_PATH = 'index.html'
+SW_FILE_PATH = 'service-worker.js'
+IMAGE_DIR = 'img/'
+MAX_POSTS = 1000  # Número máximo de posts a obtener
 
+def fetch_instagram_media():
+    """Obtiene los posts recientes del usuario con paginación."""
+    all_media = []
+    url = f"https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,permalink,timestamp,like_count,children{{media_url,media_type}}&limit=25&access_token={ACCESS_TOKEN}"
 
-def get_hashtag_id(user_id):
-    data = api_get(
-        "/ig_hashtag_search",
-        {"user_id": user_id, "q": HASHTAG},
-    )
-    if not data.get("data"):
-        raise RuntimeError(f"No se encontró el hashtag #{HASHTAG}")
-    return data["data"][0]["id"]
+    while url and len(all_media) < MAX_POSTS:
+        response = requests.get(url)
+        if response.status_code != 200:
+            error_payload = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
+            error_info = detect_instagram_error(error_payload)
+            print(f"Error al conectar con Instagram: {response.text}")
+            if error_info['is_expired_token']:
+                print(error_info['message'])
+            break
 
+        data = response.json()
+        if 'error' in data:
+            error_info = detect_instagram_error(data)
+            print(f"Error al conectar con Instagram: {json.dumps(data, ensure_ascii=False)}")
+            if error_info['is_expired_token']:
+                print(error_info['message'])
+            break
 
-def fetch_posts(hashtag_id, user_id):
-    data = api_get(
-        f"/{hashtag_id}/recent_media",
-        {
-            "user_id": user_id,
-            "fields": "id,caption,media_type,media_url,permalink,timestamp,like_count,children{media_url,media_type}",
-            "limit": 50,
-        },
-    )
-    posts = data.get("data", [])
-    # Sincronizar únicamente los posts con el hashtag requerido
-    return [p for p in posts if HASHTAG.lower() in (p.get("caption") or "").lower()]
+        all_media.extend(data.get('data', []))
 
+        # Obtener la siguiente página si existe
+        url = data.get('paging', {}).get('next')
 
-def pick_media_url(post):
-    media_type = post.get("media_type")
-    if media_type == "CAROUSEL_ALBUM":
-        children = (post.get("children") or {}).get("data") or []
-        if children:
-            return children[0].get("media_url") or post.get("media_url")
-    return post.get("media_url")
+        if url:
+            print(f"Obtenidos {len(all_media)} posts, continuando con la siguiente página...")
 
+    print(f"Total de posts obtenidos de Instagram: {len(all_media)}")
+    return all_media[:MAX_POSTS]  # Limitar al máximo configurado
 
-def build_title(post):
-    caption = (post.get("caption") or "").strip().splitlines()
-    if caption:
-        return caption[0][:120]
-    parsed = datetime.fromisoformat(post.get("timestamp", "").replace("Z", "+00:00"))
-    return parsed.strftime("%d/%m/%Y")
-
-
-def download_image(url, dest_path):
-    res = requests.get(url, timeout=60)
-    if res.status_code != 200:
-        raise RuntimeError(f"No se pudo descargar la imagen (HTTP {res.status_code})")
-    with open(dest_path, "wb") as fh:
-        fh.write(res.content)
-
-
-def generate_webp_variants(base_path, sizes=IMAGE_SIZES):
-    variants = []
-    with Image.open(base_path) as img:
-        img = img.convert("RGB")
-        for size in sizes:
-            thumb = img.copy()
-            thumb.thumbnail((size, size))
-            out_path = f"{base_path.rsplit('.', 1)[0]}_{size}.webp"
-            thumb.save(out_path, "WEBP", quality=82, method=6)
-            variants.append(out_path)
-    return variants
-
-
-def build_min_js(posts):
-    payload = json.dumps(posts, ensure_ascii=False, separators=(",", ":"))
-    header = "// ========== DATOS DE POSTS DE INSTAGRAM AUTOMATIZADOS ==========\n"
-    stamp = f"// Última actualización: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-    body = f"const INSTAGRAM_POSTS_DATA={payload};\n"
-    fn = "function getInstagramPostsData(){return INSTAGRAM_POSTS_DATA}\n"
-    return header + stamp + "\n" + body + fn
-
-
-def update_version_in_files(today):
-    version = today.strftime("%Y-%m-%d")
-    # index.html: query strings ?v=YYYY-MM-DD
-    html_path = os.path.join(PROJECT_ROOT, "index.html")
-    html = open(html_path, "r", encoding="utf-8").read()
-    html = re.sub(r"(\?v=)\d{4}-\d{2}-\d{2}", rf"\g<1>{version}", html)
-    open(html_path, "w", encoding="utf-8").write(html)
-
-    # service-worker.js: CACHE_VERSION
-    sw_path = os.path.join(PROJECT_ROOT, "service-worker.js")
-    sw = open(sw_path, "r", encoding="utf-8").read()
-    sw = re.sub(r"(const CACHE_VERSION = )'\d{4}-\d{2}-\d{2}'", rf"\g<1>'{version}'", sw)
-    open(sw_path, "w", encoding="utf-8").write(sw)
-    return version
-
-
-def main():
-    if "INSTAGRAM_TOKEN" not in os.environ or not os.environ["INSTAGRAM_TOKEN"]:
-        fail("Falta la variable de entorno INSTAGRAM_TOKEN. Configúrala como Secret de GitHub.")
-
+def process_image_variants(source_path, post_id):
+    """Genera versiones WebP en diferentes tamaños (400, 800, 1200)."""
+    sizes = [400, 800, 1200]
+    generated_files = []
+    
     try:
-        user_id, username = get_user_id()
-        print(f"[update_instagram] Token válido. Usuario: {username} (id {user_id})")
-    except Exception as err:
-        fail(f"Token de Instagram inválido o expirado: {err}")
+        with Image.open(source_path) as img:
+            # Asegurarse de que esté en RGB (por si es RGBA)
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+            
+            for size in sizes:
+                target_name = f"IG_{post_id}-{size}.webp"
+                target_path = os.path.join(IMAGE_DIR, target_name)
+                
+                # Redimensionar manteniendo aspecto
+                # Usamos un ratio para no deformar
+                w_percent = (size / float(img.size[0]))
+                h_size = int((float(img.size[1]) * float(w_percent)))
+                
+                # Solo redimensionar si la imagen original es más grande que el target
+                if img.size[0] > size:
+                    resized_img = img.resize((size, h_size), Image.Resampling.LANCZOS)
+                else:
+                    resized_img = img
+                
+                resized_img.save(target_path, "WEBP", quality=85)
+                generated_files.append(f"/img/{target_name}")
+                
+        print(f"Variantes WebP generadas para post {post_id}")
+    except Exception as e:
+        print(f"Error procesando variantes de imagen {post_id}: {e}")
+    
+    return generated_files
 
+def download_image(url, post_id):
+    """Descarga la imagen original y genera sus variantes optimizadas solo si no existen."""
+    temp_name = f"temp_{post_id}.jpg"
+    temp_path = os.path.join(IMAGE_DIR, temp_name)
+    final_image_name = f"IG_{post_id}.jpeg"
+    final_path = os.path.join(IMAGE_DIR, final_image_name)
+    
+    # Si ya existen todas las variantes, no descargamos de nuevo
+    variants_exist = all([
+        os.path.exists(os.path.join(IMAGE_DIR, f"IG_{post_id}-400.webp")),
+        os.path.exists(os.path.join(IMAGE_DIR, f"IG_{post_id}-800.webp")),
+        os.path.exists(os.path.join(IMAGE_DIR, f"IG_{post_id}-1200.webp")),
+        os.path.exists(final_path)
+    ])
+    
+    if variants_exist:
+        print(f"Imágenes ya existen para post {post_id}, omitiendo descarga.")
+        return final_image_name
+
+    print(f"Descargando nueva imagen para post {post_id}...")
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(temp_path, 'wb') as f:
+            f.write(response.content)
+        
+        # Guardar una copia como JPEG original por si acaso (tu JS la usa como fallback)
+        with Image.open(temp_path) as img:
+            img.convert("RGB").save(final_path, "JPEG", quality=90)
+            
+        # Generar los WebP optimizados
+        process_image_variants(temp_path, post_id)
+        
+        # Borrar el temporal
+        os.remove(temp_path)
+        print(f"Imagen e imágenes WebP procesadas para: {post_id}")
+    else:
+        print(f"Error al descargar imagen {post_id}")
+        
+    return final_image_name
+
+def process_posts(media_list):
+    """Filtra y procesa los posts con el hashtag especificado."""
+    selected_posts = []
+    for post in media_list:
+        caption = post.get('caption', '')
+        if HASHTAG_FILTER.lower() in caption.lower():
+            media_type = post.get('media_type', '')
+            media_url = post.get('media_url', '')
+            
+            # Omitir videos directos
+            if media_type == 'VIDEO':
+                print(f"Omitiendo post {post['id']} (tipo: VIDEO)")
+                continue
+            
+            # Para carruseles, obtener la primera imagen
+            if media_type == 'CAROUSEL_ALBUM':
+                children = post.get('children', {}).get('data', [])
+                if children:
+                    # Buscar la primera imagen en el carrusel
+                    first_image = None
+                    for child in children:
+                        if child.get('media_type') == 'IMAGE':
+                            first_image = child.get('media_url')
+                            break
+                    
+                    if first_image:
+                        media_url = first_image
+                        print(f"Procesando carrusel {post['id']} (usando primera imagen)")
+                    else:
+                        print(f"Omitiendo carrusel {post['id']} (sin imágenes)")
+                        continue
+                else:
+                    print(f"Omitiendo carrusel {post['id']} (sin hijos)")
+                    continue
+            
+            clean_caption = caption.replace(HASHTAG_FILTER, '').replace(HASHTAG_FILTER.lower(), '').strip()
+            
+            lines = clean_caption.split('\n', 1)
+            title = lines[0] if lines else "Nuevo Post"
+            description = lines[1] if len(lines) > 1 else ""
+            
+            date_str = post['timestamp'][:10]
+            
+            # Esto ahora descarga Y genera los WebP
+            img_filename = download_image(media_url, post['id'])
+            
+            selected_posts.append({
+                'id': f"ig_auto_{post['id']}",
+                'image': f"img/{img_filename}",
+                'title': title,
+                'description': description,
+                'link': post['permalink'],
+                'media_type': post['media_type'],
+                'date': date_str,
+                'likes': post.get('like_count', 0)
+            })
+    return selected_posts
+
+def load_existing_posts():
+    """Carga los posts existentes desde el archivo JS."""
+    if not os.path.exists(JS_FILE_PATH):
+        return []
+    
     try:
-        hashtag_id = get_hashtag_id(user_id)
-        posts = fetch_posts(hashtag_id, user_id)
-    except Exception as err:
-        fail(f"Error consultando la API de Instagram: {err}")
+        with open(JS_FILE_PATH, 'r', encoding='utf-8') as f:
+            content = f.read()
+            # Extraer el JSON del archivo JS
+            match = re.search(r'const INSTAGRAM_POSTS_DATA = (\[.*?\]);', content, re.DOTALL)
+            if match:
+                return json.loads(match.group(1))
+    except Exception as e:
+        print(f"Error al leer posts existentes: {e}")
+    
+    return []
 
-    if not posts:
-        print(f"[update_instagram] No hay posts con #{HASHTAG}. Se deja el archivo anterior intacto.")
+def calculate_changes(old_posts, new_posts):
+    """Calcula los cambios entre posts antiguos y nuevos."""
+    old_ids = {post['id'] for post in old_posts}
+    new_ids = {post['id'] for post in new_posts}
+    
+    added = len(new_ids - old_ids)
+    deleted = len(old_ids - new_ids)
+    
+    # Calcular modificados (posts que existen en ambos pero con contenido diferente)
+    modified = 0
+    common_ids = old_ids & new_ids
+    
+    old_posts_dict = {post['id']: post for post in old_posts}
+    new_posts_dict = {post['id']: post for post in new_posts}
+    
+    for post_id in common_ids:
+        old_post = old_posts_dict[post_id]
+        new_post = new_posts_dict[post_id]
+        
+        if (old_post['title'] != new_post['title'] or 
+            old_post['description'] != new_post['description'] or
+            old_post['image'] != new_post['image'] or
+            old_post['link'] != new_post['link'] or
+            old_post.get('likes') != new_post.get('likes')):
+            modified += 1
+    
+    return added, modified, deleted
+
+def posts_have_changed(old_posts, new_posts):
+    """Compara los posts para detectar cambios significativos."""
+    if len(old_posts) != len(new_posts):
+        return True
+    
+    # Crear sets de IDs para comparación rápida
+    old_ids = {post['id'] for post in old_posts}
+    new_ids = {post['id'] for post in new_posts}
+    
+    if old_ids != new_ids:
+        return True
+    
+    # Comparar contenido de cada post (sin la fecha de actualización)
+    for old_post, new_post in zip(sorted(old_posts, key=lambda x: x['id']), 
+                                   sorted(new_posts, key=lambda x: x['id'])):
+        if (old_post['title'] != new_post['title'] or 
+            old_post['description'] != new_post['description'] or
+            old_post['image'] != new_post['image'] or
+            old_post['link'] != new_post['link'] or
+            old_post.get('likes') != new_post.get('likes')):
+            return True
+    
+    return False
+
+def cleanup_removed_images(old_posts, new_posts):
+    """Elimina las imágenes IG_ de posts que ya no están en la lista activa."""
+    new_ids = set()
+    for post in new_posts:
+        # Extraer el ID real del Instagram desde el id del post (formato: ig_auto_XXXXXXXXX)
+        raw_id = post['id'].replace('ig_auto_', '')
+        new_ids.add(raw_id)
+
+    removed = 0
+    for post in old_posts:
+        raw_id = post['id'].replace('ig_auto_', '')
+        if raw_id not in new_ids:
+            # Eliminar todas las variantes de imagen para este post
+            variants = [
+                os.path.join(IMAGE_DIR, f"IG_{raw_id}.jpeg"),
+                os.path.join(IMAGE_DIR, f"IG_{raw_id}-400.webp"),
+                os.path.join(IMAGE_DIR, f"IG_{raw_id}-800.webp"),
+                os.path.join(IMAGE_DIR, f"IG_{raw_id}-1200.webp"),
+            ]
+            for path in variants:
+                if os.path.exists(path):
+                    os.remove(path)
+                    print(f"  🗑️  Eliminada imagen: {path}")
+                    removed += 1
+
+    if removed > 0:
+        print(f"Total imágenes eliminadas: {removed}")
+    else:
+        print("No hay imágenes huérfanas que eliminar.")
+
+    return removed
+
+
+def update_files(new_posts):
+    """Actualiza los archivos JS, MIN.JS, INDEX.HTML y SERVICE-WORKER.JS solo si hay cambios."""
+    if not new_posts:
+        print("No se encontraron posts nuevos con el hashtag.")
         return
 
-    processed = []
-    img_dir = os.path.join(PROJECT_ROOT, "img")
-    os.makedirs(img_dir, exist_ok=True)
+    # Cargar posts existentes y comparar
+    existing_posts = load_existing_posts()
+    
+    if not posts_have_changed(existing_posts, new_posts):
+        print("No hay cambios en los posts de Instagram. No se requiere actualización.")
+        # No tocar commit_message.txt si no hay cambios
+        return
+    
+    # Calcular estadísticas de cambios
+    added, modified, deleted = calculate_changes(existing_posts, new_posts)
+    
+    print(f"Se detectaron cambios en los posts:")
+    print(f"  - Agregados: {added}")
+    print(f"  - Modificados: {modified}")
+    print(f"  - Eliminados: {deleted}")
 
-    for post in posts[:MAX_SAVED_POSTS]:
-        post_id = post.get("id", "")
-        media_url = pick_media_url(post)
-        if not media_url:
-            continue
-        base_path = os.path.join(img_dir, f"IG_{post_id}.jpeg")
-        try:
-            download_image(media_url, base_path)
-            generate_webp_variants(base_path)
-        except Exception as err:
-            print(f"[update_instagram] Advertencia imagen {post_id}: {err}")
-            continue
+    # Eliminar imágenes de posts que ya no están activos
+    if deleted > 0:
+        print("Limpiando imágenes de posts eliminados...")
+        cleanup_removed_images(existing_posts, new_posts)
+    
+    # Guardar mensaje de commit
+    commit_parts = []
+    if added > 0:
+        commit_parts.append(f"agregaron {added} post{'s' if added != 1 else ''}")
+    if modified > 0:
+        commit_parts.append(f"modificaron {modified} post{'s' if modified != 1 else ''}")
+    if deleted > 0:
+        commit_parts.append(f"eliminaron {deleted} post{'s' if deleted != 1 else ''} (imágenes limpiadas)")
+    
+    commit_message = f"Se {', '.join(commit_parts)} desde Instagram"
+    
+    with open('commit_message.txt', 'w', encoding='utf-8') as f:
+        f.write(commit_message)
+    
+    print(f"Actualizando archivos...")
 
-        processed.append(
-            {
-                "id": f"ig_auto_{post_id}",
-                "image": f"img/IG_{post_id}.jpeg",
-                "title": build_title(post),
-                "description": post.get("caption") or "",
-                "link": post.get("permalink") or "",
-                "media_type": post.get("media_type") or "",
-                "date": (post.get("timestamp") or "")[:10],
-                "likes": int(post.get("like_count") or 0),
-            }
-        )
+    # 1. Generar JS Normal
+    js_content = "// ========== DATOS DE POSTS DE INSTAGRAM AUTOMATIZADOS ==========\n"
+    js_content += f"// Última actualización: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+    js_content += "const INSTAGRAM_POSTS_DATA = " + json.dumps(new_posts, indent=4, ensure_ascii=False) + ";\n\n"
+    js_content += "function getInstagramPostsData() {\n    return INSTAGRAM_POSTS_DATA;\n}"
 
-    if not processed:
-        fail("No se pudieron procesar imágenes de los posts.")
+    with open(JS_FILE_PATH, 'w', encoding='utf-8') as f:
+        f.write(js_content)
 
-    out_path = os.path.join(PROJECT_ROOT, "js", "instagram_posts.min.js")
-    with open(out_path, "w", encoding="utf-8") as fh:
-        fh.write(build_min_js(processed))
+    # 2. Generar MIN.JS
+    min_js_content = "const INSTAGRAM_POSTS_DATA=" + json.dumps(new_posts, separators=(',', ':'), ensure_ascii=False) + ";"
+    min_js_content += "function getInstagramPostsData(){return INSTAGRAM_POSTS_DATA}"
 
-    version = update_version_in_files(date.today())
+    with open(MIN_JS_FILE_PATH, 'w', encoding='utf-8') as f:
+        f.write(min_js_content)
 
-    print(f"[update_instagram] OK: {len(processed)} posts sincronizados (versión {version}).")
+    # 3. Actualizar Index.html
+    new_version = datetime.now().strftime('%Y-%m-%d_%H%M')
+    if os.path.exists(INDEX_FILE_PATH):
+        with open(INDEX_FILE_PATH, 'r', encoding='utf-8') as f:
+            html = f.read()
+        pattern = r"instagram_posts\.min\.js\?v=[^']+"
+        replacement = f"instagram_posts.min.js?v={new_version}"
+        new_html = re.sub(pattern, replacement, html)
+        with open(INDEX_FILE_PATH, 'w', encoding='utf-8') as f:
+            f.write(new_html)
 
+    # 4. Actualizar Service Worker con TODAS las variantes WebP
+    if os.path.exists(SW_FILE_PATH):
+        with open(SW_FILE_PATH, 'r', encoding='utf-8') as f:
+            sw_content = f.read()
+        
+        sw_version = datetime.now().strftime('%Y-%m-%d_%H%M')
+        sw_content = re.sub(r"const CACHE_VERSION = '[^']+';", f"const CACHE_VERSION = '{sw_version}';", sw_content)
+        
+        # Generar lista extendida de imágenes (JPEG + todas las variantes WebP)
+        full_images_list = []
+        for p in new_posts:
+            base_id = p['image'].split('/')[-1].replace('.jpeg', '')
+            full_images_list.append(f"    '/img/{base_id}.jpeg'")
+            full_images_list.append(f"    '/img/{base_id}-400.webp'")
+            full_images_list.append(f"    '/img/{base_id}-800.webp'")
+            full_images_list.append(f"    '/img/{base_id}-1200.webp'")
+        
+        new_images_js = "const INSTAGRAM_IMAGES = [\n" + ",\n".join(full_images_list) + "\n];"
+        sw_content = re.sub(r"const INSTAGRAM_IMAGES = \[.*?\];", new_images_js, sw_content, flags=re.DOTALL)
+        
+        with open(SW_FILE_PATH, 'w', encoding='utf-8') as f:
+            f.write(sw_content)
+        print(f"Service Worker actualizado con variantes WebP")
+
+    print(f"Proceso completado. Archivos y variantes de imagen generados.")
 
 if __name__ == "__main__":
-    main()
+    if not ACCESS_TOKEN:
+        print("Error: No se encontró INSTAGRAM_TOKEN. Configúralo como variable de entorno o en el archivo .env")
+        import sys
+        sys.exit(1)
+    else:
+        media = fetch_instagram_media()
+        processed = process_posts(media)
+        update_files(processed)

@@ -1,41 +1,54 @@
-name: Update Instagram
+name: Actualizar Instagram Posts
 
 on:
   schedule:
-    - cron: '0 */12 * * *'
-  workflow_dispatch:
-
-permissions:
-  contents: write
+    - cron: '0 */12 * * *' # Se ejecuta cada 12 horas
+  workflow_dispatch: # Permite ejecución manual desde GitHub
 
 jobs:
-  update-instagram:
+  update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Permite escribir en el repositorio
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    - name: Checkout del código
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
+    - name: Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
 
-      - name: Install dependencies
-        run: pip install requests Pillow
+    - name: Instalar dependencias
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-      - name: Run Instagram Updater
-        run: python api/update_instagram.py
-        env:
-          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+    - name: Ejecutar script de actualización
+      env:
+        INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+      run: python api/update_instagram.py
 
-      - name: Commit and push changes
-        run: |
-          git config user.name "DoubleImpactStore Bot"
-          git config user.email "bot@doubleimpactstore.cl"
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: actualizar posts de Instagram [skip ci]"
-            git push
+    - name: Commit y Push de los cambios
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add .
+
+        # Verificar si hay cambios staged
+        if git diff --staged --quiet; then
+          echo "No hay cambios para commitear"
+        else
+          # Leer el mensaje de commit generado por el script
+          if [ -f commit_message.txt ] && [ -s commit_message.txt ]; then
+            COMMIT_MSG=$(cat commit_message.txt)
+            git commit -m "$COMMIT_MSG"
           else
-            echo "No hay cambios que commitear."
+            git commit -m "chore: actualizar posts de Instagram [bot]"
           fi
+          git push
+          echo "Cambios pusheados exitosamente"
+        fi
