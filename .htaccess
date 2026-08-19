@@ -26,7 +26,7 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^404/?$ 404.html [L]
 
 # ---- Cabeceras de seguridad ----
-Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.instagram.com; font-src 'self' data:; connect-src 'self' https://docs.google.com https://www.googleapis.com https://www.google-analytics.com https://static.cloudflareinsights.com; frame-src https://www.googletagmanager.com; base-uri 'self'; form-action 'self'; object-src 'none'"
+Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://ssl.google-analytics.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.instagram.com https://www.google-analytics.com https://ssl.google-analytics.com; font-src 'self' data:; connect-src 'self' https://docs.google.com https://www.googleapis.com https://www.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://ssl.google-analytics.com https://region1.google-analytics.com https://static.cloudflareinsights.com; frame-src https://www.googletagmanager.com https://tagmanager.google.com; base-uri 'self'; form-action 'self'; object-src 'none'"
 Header always set X-Content-Type-Options "nosniff"
 Header always set X-XSS-Protection "1; mode=block"
 Header always set X-Frame-Options "DENY"

@@ -28,6 +28,11 @@ export function isAdBlockActive() {
 
 function loadGtm() {
   if (!ANALYTICS_CONFIG.gtmId) return;
+  // GTM ya está inyectado en el <head> de cada página (snippet oficial).
+  // Evita una segunda carga de gtm.js si initAnalytics se ejecuta igualmente.
+  const alreadyInjected = Array.from(document.querySelectorAll('script[src*="googletagmanager.com/gtm.js"]'))
+    .some((s) => s.src.includes(ANALYTICS_CONFIG.gtmId));
+  if (alreadyInjected || window.google_tag_manager) return;
   const script = document.createElement('script');
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(ANALYTICS_CONFIG.gtmId)}`;
@@ -36,6 +41,11 @@ function loadGtm() {
 
 function loadGa4() {
   if (!ANALYTICS_CONFIG.ga4Id) return;
+  // Si GTM ya está presente (y cargó gtag.js vía su contenedor), no duplicar
+  // la configuración de GA4 para evitar doble conteo de page_views.
+  const gtmInjected = Array.from(document.querySelectorAll('script[src*="googletagmanager.com/gtm.js"]'))
+    .some((s) => s.src.includes(ANALYTICS_CONFIG.gtmId));
+  if (gtmInjected || window.google_tag_manager) return;
   window.dataLayer = window.dataLayer || [];
   window.gtag = function gtag() {
     // eslint-disable-next-line prefer-rest-params
