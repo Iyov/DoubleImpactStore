@@ -332,7 +332,7 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
 
 1. THE DoubleImpactStore SHALL mostrar en el menú de navegación principal los siguientes ítems en este orden exacto: Inicio, Nosotros, Productos, Instagram, Efemérides, Blog, Testimonios, FAQ, Servicios, Contacto.
 2. THE DoubleImpactStore SHALL hacer que el enlace "Productos" del menú navegue a la página `/productos` y los demás ítems naveguen mediante anchor links (`#nosotros`, `#instagram`, `#efemerides`, `#blog`, `#testimonios`, `#faq`, `#servicios`, `#contacto`) a sus secciones correspondientes en `index.html`.
-3. THE DoubleImpactStore SHALL mostrar en el header únicamente el logo (imagen `img/LogoDoubleImpactStore_50%.png` o equivalente) SIN el texto "DoubleImpactStore" al lado — el texto ocupa espacio innecesario y debe eliminarse del header.
+3. THE DoubleImpactStore SHALL mostrar en el header únicamente el logo (imagen `img/LogoDoubleImpactStore_150.png` o equivalente) SIN el texto "DoubleImpactStore" al lado — el texto ocupa espacio innecesario y debe eliminarse del header.
 4. THE DoubleImpactStore SHALL mostrar en los ítems del menú de navegación desktop únicamente el ícono de Font Awesome correspondiente a cada sección, SIN texto visible junto al ícono.
 5. WHEN el usuario pasa el mouse sobre un ítem del menú, THE DoubleImpactStore SHALL mostrar un tooltip con el nombre de la sección en el idioma activo (ES/EN), usando CSS puro (`:hover` + pseudo-elemento) o JS mínimo.
 6. THE DoubleImpactStore SHALL aplicar atributo `aria-label` con el nombre de la sección a cada ítem del menú para accesibilidad (lectores de pantalla).
@@ -463,8 +463,8 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
 #### Acceptance Criteria
 
 1. THE DoubleImpactStore SHALL reemplazar todos los logos e imágenes de marca con el logo de DoubleImpactStore en todos los tamaños requeridos. Los logos de DoubleImpactStore están en la carpeta `img/`:
-   - `LogoDoubleImpactStore_100%.png` - Logo al 100% de resolución.
-   - `LogoDoubleImpactStore_50%.png` - Logo al 50% de resolución.
+   - `LogoDoubleImpactStore_100pp.png` - Logo al 100% de resolución.
+   - `LogoDoubleImpactStore_50pp.png` - Logo al 50% de resolución.
    - `LogoDoubleImpactStore_500.png` - Logo con resolución de 500x500 px.
    - `LogoDoubleImpactStore_250.png` - Logo con resolución de 250x250 px.
    - `LogoDoubleImpactStore_150.png` - Logo con resolución de 150x150 px.

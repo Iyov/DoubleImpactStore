@@ -5,7 +5,7 @@ import { sanitizeHTML } from './utils.js';
 import { t } from './ui.js';
 
 export async function loadEfemerides() {
-  const res = await fetch('js/efemerides.json', { cache: 'no-store' });
+  const res = await fetch('./js/efemerides.json', { cache: 'no-store' });
   if (!res.ok) {
     throw new Error(`No se pudo cargar el archivo de efemérides (HTTP ${res.status})`);
   }
@@ -22,41 +22,31 @@ export function getTodayEfemeride(data, date = new Date()) {
 
 export function renderEfemeride(efemeride, container, lang) {
   if (!container) return;
+  const section = container.closest('section');
   if (!efemeride) {
-    container.style.display = 'none';
+    if (section) section.style.display = 'none';
     return;
   }
-  container.style.display = '';
+  if (section) section.style.display = '';
+  const dateEl = document.getElementById('efemerides-date');
+  if (dateEl) dateEl.textContent = efemeride.date || '';
   const content = efemeride[lang] || efemeride.ES || {};
   const title = sanitizeHTML(content.title || '');
   const text = sanitizeHTML(content.text || '');
   const detail = sanitizeHTML(content.det || '');
 
   container.innerHTML = `
-    <article class="efemeride-card">
+    <article class="efemeride-item">
       <div class="efemeride-header">
-        <span class="efemeride-icon" aria-hidden="true"><i class="fa-solid fa-calendar-days"></i></span>
+        <span class="efemeride-icon" aria-hidden="true"><i class="fa-solid fa-calendar-day"></i></span>
         <div>
           <h3 class="efemeride-title">${title}</h3>
           <p class="efemeride-text">${text}</p>
         </div>
       </div>
-      <button type="button" class="efemeride-toggle" aria-expanded="false">
-        <span data-i18n="efemerides.read_more">${sanitizeHTML(t('efemerides.read_more'))}</span>
-      </button>
-      <div class="efemeride-detail" hidden>${detail}</div>
+      <details class="efemeride-details">
+        <summary data-i18n="efemerides.read_more">${sanitizeHTML(t('efemerides.read_more'))}</summary>
+        <p class="efemeride-detail">${detail}</p>
+      </details>
     </article>`;
-
-  const toggle = container.querySelector('.efemeride-toggle');
-  const detailEl = container.querySelector('.efemeride-detail');
-  if (toggle && detailEl) {
-    toggle.addEventListener('click', () => {
-      const expanded = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!expanded));
-      detailEl.hidden = expanded;
-      toggle.querySelector('[data-i18n]').textContent = expanded
-        ? t('efemerides.read_more')
-        : t('efemerides.read_less');
-    });
-  }
 }

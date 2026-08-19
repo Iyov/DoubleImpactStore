@@ -9,49 +9,56 @@ export const SOCIAL_LINKS = [
     icon: 'fa-brands fa-instagram',
     label: 'Instagram DoubleImpactStore',
     i18n: 'social.instagram1',
-    url: 'https://www.instagram.com/doubleimpactstore/'
+    url: 'https://www.instagram.com/doubleimpactstore/',
+    contact: true
   },
   {
     id: 'instagram2',
     icon: 'fa-brands fa-instagram',
     label: 'Instagram @Ropavejero.Retro',
     i18n: 'social.instagram2',
-    url: 'https://www.instagram.com/ropavejero.retro/'
+    url: 'https://www.instagram.com/ropavejero.retro/',
+    contact: true
   },
   {
     id: 'instagram3',
     icon: 'fa-brands fa-instagram',
     label: 'Instagram @NekketsuStore',
     i18n: 'social.instagram3',
-    url: 'https://www.instagram.com/nekketsustore/'
+    url: 'https://www.instagram.com/nekketsustore/',
+    contact: true
   },
   {
     id: 'threads',
     icon: 'fa-brands fa-threads',
     label: 'Threads',
     i18n: 'social.threads',
-    url: 'https://www.threads.com/@doubleimpactstore/'
+    url: 'https://www.threads.com/@doubleimpactstore/',
+    contact: true
   },
   {
     id: 'x',
     icon: 'fa-brands fa-x-twitter',
     label: 'Twitter / X',
     i18n: 'social.x',
-    url: 'https://x.com/DoubleImpactSpA'
+    url: 'https://x.com/DoubleImpactSpA',
+    contact: true
   },
   {
     id: 'youtube',
     icon: 'fa-brands fa-youtube',
     label: 'YouTube',
     i18n: 'social.youtube',
-    url: 'https://www.youtube.com/@DoubleImpactStoreSpA'
+    url: 'https://www.youtube.com/@DoubleImpactStoreSpA',
+    contact: true
   },
   {
     id: 'whatsapp',
     icon: 'fa-brands fa-whatsapp',
     label: 'WhatsApp',
     i18n: 'social.whatsapp',
-    url: 'https://wa.me/56967691585'
+    url: 'https://wa.me/56967691585',
+    contact: true
   },
   {
     id: 'catalog',
@@ -75,21 +82,20 @@ export function renderSocialLinks(containers) {
     if (!container) return;
     container.innerHTML = '';
     const labeled = container.getAttribute('data-social') === 'labeled';
-    const links = SOCIAL_LINKS.filter((item) => item.url && item.url.trim() !== '');
+    const links = SOCIAL_LINKS.filter((item) => item.url && item.url.trim() !== '' && (labeled ? item.contact : true));
     links.forEach((item) => {
       const anchor = document.createElement('a');
-      anchor.className = labeled ? 'contact-item' : 'social-link';
+      anchor.className = labeled ? 'contact-card' : 'social-link';
       anchor.href = item.url;
       anchor.target = '_blank';
       anchor.rel = 'noopener noreferrer';
       anchor.setAttribute('aria-label', item.label);
       const icon = document.createElement('i');
-      icon.className = labeled ? `contact-icon ${item.icon}` : item.icon;
+      icon.className = item.icon;
       icon.setAttribute('aria-hidden', 'true');
       anchor.appendChild(icon);
       if (labeled) {
         const label = document.createElement('span');
-        label.className = 'contact-label';
         if (item.i18n) label.setAttribute('data-i18n', item.i18n);
         label.textContent = item.label;
         anchor.appendChild(label);

@@ -450,13 +450,13 @@ Tests E2E: **Playwright**
   - Implementar `initWhatsAppButton()` para traducir el tooltip al cambiar idioma
   - _Requirements: 25.1, 25.2, 25.3, 25.4, 25.5, 25.6_
 
-- [ ] 28. Refactorizar menú: quitar texto "DoubleImpactStore" del header y cambiar a solo-íconos con tooltip
-  - [ ] 28.1 Eliminar el texto "DoubleImpactStore" del header en `index.html`
+- [x] 28. Refactorizar menú: quitar texto "DoubleImpactStore" del header y cambiar a solo-íconos con tooltip
+  - [x] 28.1 Eliminar el texto "DoubleImpactStore" del header en `index.html`
     - Localizar el `<span>` o texto junto al logo en el `<header>` y eliminarlo
-    - Conservar únicamente la imagen del logo: `<img src="img/LogoDoubleImpactStore_50%.png" alt="DoubleImpactStore">`
+    - Conservar únicamente la imagen del logo: `<img src="img/LogoDoubleImpactStore_150.png" alt="DoubleImpactStore">`
     - El `<a class="logo-link">` que envuelve el logo debe tener `aria-label="DoubleImpactStore — Volver al inicio"`
     - _Requirements: 21.3_
-  - [ ] 28.2 Cambiar ítems del menú desktop a solo-ícono con tooltip CSS
+  - [x] 28.2 Cambiar ítems del menú desktop a solo-ícono con tooltip CSS
     - Reemplazar cada `<a>` del menú para que contenga: ícono FA + `<span class="nav-text" data-i18n="nav.X">Texto</span>`
     - En desktop (> 1024px): `.nav-text { display: none }` — solo se ve el ícono
     - En móvil (≤ 1024px): `.nav-text { display: inline }` — ícono + texto visibles en el hamburguesa
@@ -464,14 +464,14 @@ Tests E2E: **Playwright**
     - Aplicar `aria-label` con el nombre de la sección a cada `<a>` para accesibilidad
     - Íconos por ítem: Inicio=`fa-house`, Nosotros=`fa-users`, Productos=`fa-gamepad`, Instagram=`fa-brands fa-instagram`, Efemérides=`fa-calendar-day`, Blog=`fa-newspaper`, Testimonios=`fa-star`, FAQ=`fa-circle-question`, Servicios=`fa-screwdriver-wrench`, Contacto=`fa-envelope`
     - _Requirements: 21.4, 21.5, 21.6, 21.9, 21.10_
-  - [ ] 28.3 Actualizar `css/style.css` con estilos del menú solo-íconos
+  - [x] 28.3 Actualizar `css/style.css` con estilos del menú solo-íconos
     - Ocultar `.nav-text` en desktop; mostrar en móvil
     - Tooltip: `.nav-link { position: relative; } .nav-link::after { content: attr(aria-label); position: absolute; bottom: -2rem; ... opacity: 0; transition: opacity 0.2s; } .nav-link:hover::after, .nav-link:focus::after { opacity: 1; }`
     - Ajustar `padding` del logo para que ocupe menos espacio sin el texto
     - _Requirements: 21.4, 21.5_
 
-- [ ] 29. Implementar sección Efemérides completa (fix crítico — actualmente no muestra contenido)
-  - [ ] 29.1 Asegurar que `<section id="efemerides">` tiene estructura HTML completa en `index.html`
+- [x] 29. Implementar sección Efemérides completa (fix crítico — actualmente no muestra contenido)
+  - [x] 29.1 Asegurar que `<section id="efemerides">` tiene estructura HTML completa en `index.html`
     - La sección DEBE tener: título con `data-i18n`, párrafo de fecha con `id="efemerides-date"`, contenedor `id="efemerides-content"` con fallback de carga
     - Estructura mínima requerida (ver diseño):
       ```html
@@ -484,26 +484,26 @@ Tests E2E: **Playwright**
       </section>
       ```
     - _Requirements: 27.1, 13.4_
-  - [ ] 29.2 Corregir `js/modules/efemerides.js` para que cargue y renderice correctamente
+  - [x] 29.2 Corregir `js/modules/efemerides.js` para que cargue y renderice correctamente
     - `loadEfemerides()`: usar `fetch('./js/efemerides.json')` — verificar que la ruta es correcta relativa a `index.html`
     - `getTodayEfemeride(data)`: construir clave como `DD/MM` con `padStart(2,'0')` — NO usar `MM-DD`
     - `renderEfemeride(efemeride, container, lang)`: inyectar HTML con título, texto y `<details>` expandible
     - Si `efemeride === null`: `container.closest('section').style.display = 'none'`
     - _Requirements: 27.2, 27.3, 27.4, 27.5, 13.5, 13.6_
-  - [ ] 29.3 Verificar que `js/index.js` llama a las funciones de efemérides
+  - [x] 29.3 Verificar que `js/index.js` llama a las funciones de efemérides
     - Confirmar que `loadEfemerides()`, `getTodayEfemeride()` y `renderEfemeride()` son llamadas en `DOMContentLoaded`
     - La llamada debe ser: `const data = await loadEfemerides(); const ef = getTodayEfemeride(data); renderEfemeride(ef, document.getElementById('efemerides-content'), getLang());`
     - _Requirements: 27.2, 13.5_
-  - [ ] 29.4 Agregar ítem "Efemérides" al menú si no está presente
+  - [x] 29.4 Agregar ítem "Efemérides" al menú si no está presente
     - Verificar que el menú tiene el enlace `<a href="#efemerides">` con ícono `fa-calendar-day`
     - _Requirements: 27.6, 21.9_
 
-- [ ] 30. Actualizar sección Contacto: quitar info de envíos y aplicar patrón contact-card
-  - [ ] 30.1 Eliminar textos de envíos del HTML de la sección `#contacto`
+- [x] 30. Actualizar sección Contacto: quitar info de envíos y aplicar patrón contact-card
+  - [x] 30.1 Eliminar textos de envíos del HTML de la sección `#contacto`
     - Buscar y eliminar cualquier texto o elemento que mencione: "Envíos: Enviamos a todo Chile por encomienda", "Entrega presencial", "puntos de metro de Santiago" o equivalentes
     - No eliminar los enlaces de redes sociales ni el botón WhatsApp
     - _Requirements: 18.4_
-  - [ ] 30.2 Aplicar patrón `.contact-card` a todos los enlaces de contacto
+  - [x] 30.2 Aplicar patrón `.contact-card` a todos los enlaces de contacto
     - Cada enlace debe seguir exactamente el patrón:
       ```html
       <a href="URL" target="_blank" rel="noopener noreferrer" class="contact-card">
@@ -513,14 +513,14 @@ Tests E2E: **Playwright**
       ```
     - Incluir: Instagram @doubleimpactstore, Instagram @Ropavejero.Retro, Instagram @NekketsuStore, Threads, Twitter/X, WhatsApp, YouTube
     - _Requirements: 18.5, 22.1, 22.2, 22.3_
-  - [ ] 30.3 Agregar / actualizar estilos CSS de `.contact-card`
+  - [x] 30.3 Agregar / actualizar estilos CSS de `.contact-card`
     - `.contact-card { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 1.5rem; }`
     - `.contact-card i { font-size: 3rem; }` (mínimo 48px)
     - `.contact-card span { font-size: 0.9rem; text-align: center; }`
     - Grid contenedor: `display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1.5rem;`
     - _Requirements: 22.1, 22.3_
 
-- [ ] 31. Implementar sección Productos Destacados con categorías por fabricante
+- [x] 31. Implementar sección Productos Destacados con categorías por fabricante
   - Actualizar el HTML de `<section id="productos-destacados">` con las 5 tarjetas de categoría:
     - Nintendo (NES, SNES, N64, GameCube, GameBoy/Color/Advance, Wii/U, DS, 3DS)
     - PlayStation (PS1, PS2, PSP, PS3, PS4)
@@ -532,7 +532,7 @@ Tests E2E: **Playwright**
   - Traducciones ES/EN para los nombres de categoría en `ui.js`
   - _Requirements: 26.1, 26.2, 26.3, 26.4, 26.5_
 
-- [ ] 32. Checkpoint final iteración 2 — Verificar todos los cambios
+- [x] 32. Checkpoint final iteración 2 — Verificar todos los cambios
   - Verificar que el header no muestra el texto "DoubleImpactStore" — solo el logo imagen
   - Verificar que el menú desktop muestra solo íconos y el tooltip aparece en hover
   - Verificar que el menú hamburguesa móvil muestra ícono + texto

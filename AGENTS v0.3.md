@@ -106,7 +106,7 @@ En `index.html`:
 - Utiliza:
 
 ```html
-<img src="img/LogoDoubleImpactStore_50%.png" alt="DoubleImpactStore">
+<img src="img/LogoDoubleImpactStore_150.png" alt="DoubleImpactStore">
 ```
 
 El enlace que envuelve el logo debe tener:

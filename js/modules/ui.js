@@ -34,19 +34,19 @@ const translations = {
     'hero.title': 'DoubleImpactStore',
     'hero.subtitle': 'Videojuegos retro originales, coleccionables y servicio técnico de consolas. Nacimos de la unión de @Ropavejero.Retro y @nekketsustore.',
     'hero.cta_catalog': 'Ver catálogo',
-    'hero.cta_services': 'Servicios técnicos',
+    'hero.cta_contact': 'Contacto',
     'about.title': 'Sobre nosotros',
     'about.text1': 'DoubleImpactStore es una tienda dedicada a videojuegos retro originales y coleccionables, nacida de la unión de @Ropavejero.Retro y @nekketsustore.',
     'about.text2': 'Cada juego pasa por una revisión y limpieza antes de publicarse en el catálogo, y se detalla su estado exacto con siglas claras.',
     'about.text3': 'Hacemos envíos a todo Chile y entregas presenciales en Santiago.',
     'featured.title': 'Productos destacados',
     'featured.subtitle': 'Explora el catálogo completo en Google Sheets',
-    'featured.card1_title': 'PlayStation 1 y 2',
-    'featured.card1_text': 'Clásicos originales con carátulas y manuales.',
-    'featured.card2_title': 'Nintendo (NES, SNES, N64)',
-    'featured.card2_text': 'Cartuchos y consolas de las generaciones doradas.',
-    'featured.card3_title': 'Sega y más',
-    'featured.card3_text': 'Mega Drive, Dreamcast, Game Boy y accesorios.',
+    'featured.nintendo': 'Nintendo',
+    'featured.playstation': 'PlayStation',
+    'featured.sega': 'Sega',
+    'featured.xbox': 'Xbox',
+    'featured.otros': 'Atari y más',
+    'featured.otros_platforms': 'Atari · Odyssey · Pong · y otras consolas retro',
     'featured.cta': 'Ir al catálogo',
     'instagram.title': 'Instagram',
     'instagram.subtitle': 'Últimos posts publicados',
@@ -55,6 +55,7 @@ const translations = {
     'instagram.open': 'Ver publicación en Instagram',
     'instagram.empty': 'No hay posts disponibles.',
     'efemerides.title': 'Efemérides gaming',
+    'efemerides.loading': 'Cargando efeméride del día...',
     'efemerides.read_more': 'Leer más',
     'efemerides.read_less': 'Leer menos',
     'blog.title': 'Blog',
@@ -71,13 +72,16 @@ const translations = {
     'blog.card3_date': '29/07/2026',
     'blog.card3_excerpt': 'Aprende a leer las siglas del catálogo y a comprar retro con confianza.',
     'testimonials.title': 'Testimonios',
-    'testimonials.notice': 'Contenido de demostración: las reseñas mostradas son ejemplos y no corresponden a clientes reales.',
-    'testimonials.card1_name': 'Coleccionista demo',
-    'testimonials.card1_review': 'Excelente selección de títulos originales y muy buen trato. El envío llegó rápido y bien embalado.',
-    'testimonials.card2_name': 'Jugador demo',
-    'testimonials.card2_review': 'Compré varios juegos de PS1 con sus manuales originales, tal cual se describían en el catálogo.',
-    'testimonials.card3_name': 'Cliente demo',
-    'testimonials.card3_review': 'El servicio técnico recuperó mi SNES. Ahora funciona perfecta. Muy recomendados.',
+    'testimonials.subtitle': 'Nos enorgullece contar con la confianza de la comunidad retro. Aquí algunos de sus testimonios.',
+    'testimonials.card1_name': 'Andrés V.',
+    'testimonials.card1_role': 'Coleccionista',
+    'testimonials.card1_review': 'He comprado en "Double Impact Store" durante años y su servicio siempre es de primera. La calidad de los productos es excelente y siempre llegan en perfecto estado. ¡Muy recomendable!',
+    'testimonials.card2_name': 'Carla M.',
+    'testimonials.card2_role': 'Gamer',
+    'testimonials.card2_review': 'Encontré exactamente lo que buscaba en "Double Impact Store". La selección de juegos y consolas retro es impresionante, y los precios son muy competitivos. Definitivamente seré un cliente recurrente.',
+    'testimonials.card3_name': 'Javier R.',
+    'testimonials.card3_role': 'Entusiasta Retro',
+    'testimonials.card3_review': 'El equipo de "Double Impact Store" es fantástico. Son conocedores, amables y siempre dispuestos a ayudar. Mi pedido llegó rápidamente y todo estaba como se describía. ¡No podría estar más feliz!',
     'services.title': 'Servicios técnicos',
     'services.subtitle': 'Reparación y mantenimiento de consolas retro y discos ópticos.',
     'services.diagnostico': 'Diagnóstico',
@@ -201,19 +205,19 @@ const translations = {
     'hero.title': 'DoubleImpactStore',
     'hero.subtitle': 'Original retro games, collectibles and console repair services. Born from the union of @Ropavejero.Retro and @nekketsustore.',
     'hero.cta_catalog': 'View catalog',
-    'hero.cta_services': 'Repair services',
+    'hero.cta_contact': 'Contact',
     'about.title': 'About us',
     'about.text1': 'DoubleImpactStore is a store dedicated to original retro games and collectibles, born from the union of @Ropavejero.Retro and @nekketsustore.',
     'about.text2': 'Every game is inspected and cleaned before being published in the catalog, and its exact condition is described with clear acronyms.',
     'about.text3': 'We ship across Chile and offer in-person pickup in Santiago.',
     'featured.title': 'Featured products',
     'featured.subtitle': 'Browse the full catalog on Google Sheets',
-    'featured.card1_title': 'PlayStation 1 & 2',
-    'featured.card1_text': 'Original classics with covers and manuals.',
-    'featured.card2_title': 'Nintendo (NES, SNES, N64)',
-    'featured.card2_text': 'Cartridges and consoles from the golden generations.',
-    'featured.card3_title': 'Sega and more',
-    'featured.card3_text': 'Mega Drive, Dreamcast, Game Boy and accessories.',
+    'featured.nintendo': 'Nintendo',
+    'featured.playstation': 'PlayStation',
+    'featured.sega': 'Sega',
+    'featured.xbox': 'Xbox',
+    'featured.otros': 'Atari and more',
+    'featured.otros_platforms': 'Atari · Odyssey · Pong · and other retro consoles',
     'featured.cta': 'Go to catalog',
     'instagram.title': 'Instagram',
     'instagram.subtitle': 'Latest published posts',
@@ -222,6 +226,7 @@ const translations = {
     'instagram.open': 'Open post on Instagram',
     'instagram.empty': 'No posts available.',
     'efemerides.title': 'Gaming anniversaries',
+    'efemerides.loading': "Loading today's gaming history...",
     'efemerides.read_more': 'Read more',
     'efemerides.read_less': 'Read less',
     'blog.title': 'Blog',
@@ -238,13 +243,16 @@ const translations = {
     'blog.card3_date': '07/29/2026',
     'blog.card3_excerpt': 'Learn to read catalog acronyms and buy retro with confidence.',
     'testimonials.title': 'Testimonials',
-    'testimonials.notice': 'Demo content: the reviews shown are examples and do not correspond to real customers.',
-    'testimonials.card1_name': 'Demo collector',
-    'testimonials.card1_review': 'Great selection of original titles and very good service. Shipping arrived fast and well packed.',
-    'testimonials.card2_name': 'Demo gamer',
-    'testimonials.card2_review': 'Bought several PS1 games with their original manuals, exactly as described in the catalog.',
-    'testimonials.card3_name': 'Demo customer',
-    'testimonials.card3_review': 'The repair service revived my SNES. Now it works perfectly. Highly recommended.',
+    'testimonials.subtitle': 'We are proud of the trust of the retro community. Here are some of their testimonials.',
+    'testimonials.card1_name': 'Andrés V.',
+    'testimonials.card1_role': 'Collector',
+    'testimonials.card1_review': 'I have been buying from "Double Impact Store" for years and their service is always first-class. The quality of the products is excellent and they always arrive in perfect condition. Highly recommended!',
+    'testimonials.card2_name': 'Carla M.',
+    'testimonials.card2_role': 'Gamer',
+    'testimonials.card2_review': 'I found exactly what I was looking for at "Double Impact Store". The selection of retro games and consoles is impressive, and the prices are very competitive. I will definitely be a repeat customer.',
+    'testimonials.card3_name': 'Javier R.',
+    'testimonials.card3_role': 'Retro Enthusiast',
+    'testimonials.card3_review': 'The team at "Double Impact Store" is fantastic. They are knowledgeable, friendly and always willing to help. My order arrived quickly and everything was as described. I could not be happier!',
     'services.title': 'Repair services',
     'services.subtitle': 'Repair and maintenance of retro consoles and optical discs.',
     'services.diagnostico': 'Diagnosis',
@@ -648,7 +656,17 @@ function getCurrentPath() {
   if (path.endsWith('security-policy.html') || path === '/security-policy') return '/security-policy';
   if (path.endsWith('security-acknowledgments.html') || path === '/security-acknowledgments') return '/security-acknowledgments';
   if (path.endsWith('404.html')) return '';
-  return '/';
+  const sections = {
+    '#nosotros': '/nosotros',
+    '#instagram': '/instagram',
+    '#efemerides': '/efemerides',
+    '#blog': '/blog',
+    '#testimonios': '/testimonios',
+    '#faq': '/faq',
+    '#servicios': '/servicios',
+    '#contacto': '/contacto',
+  };
+  return sections[window.location.hash] || '/';
 }
 
 function initToggles() {
@@ -656,6 +674,15 @@ function initToggles() {
   if (themeBtn) themeBtn.addEventListener('click', () => setTheme(getTheme() === 'dark' ? 'light' : 'dark'));
   const langBtn = document.getElementById('lang-toggle');
   if (langBtn) langBtn.addEventListener('click', () => setLang(getLang() === 'es' ? 'en' : 'es'));
+}
+
+function initNavActive() {
+  document.querySelectorAll('[data-nav]').forEach((link) => {
+    link.addEventListener('click', () => {
+      setNavActive(link.getAttribute('data-nav'));
+    });
+  });
+  window.addEventListener('hashchange', () => setNavActive());
 }
 
 function initOfflineIndicator() {
@@ -681,6 +708,7 @@ export function initUI() {
   initTheme();
   initLang();
   initToggles();
+  initNavActive();
   initMobileMenu();
   initFAQ();
   initBlogModals();

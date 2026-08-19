@@ -71,8 +71,8 @@ graph TD
 ├── .well-known/
 │   └── security.txt
 ├── img/
-│   ├── LogoDoubleImpactStore_100%.png
-│   ├── LogoDoubleImpactStore_50%.png
+│   ├── LogoDoubleImpactStore_100pp.png
+│   ├── LogoDoubleImpactStore_50pp.png
 │   ├── LogoDoubleImpactStore_500.png
 │   ├── LogoDoubleImpactStore_250.png
 │   └── LogoDoubleImpactStore_150.png
@@ -185,7 +185,7 @@ El menú de navegación desktop usa **solo íconos** con tooltip en hover para m
 <header>
   <!-- Logo SIN texto: solo la imagen -->
   <a href="/" class="logo-link" aria-label="DoubleImpactStore — Volver al inicio">
-    <img src="img/LogoDoubleImpactStore_50%.png" alt="DoubleImpactStore" class="logo-img">
+    <img src="img/LogoDoubleImpactStore_150.png" alt="DoubleImpactStore" class="logo-img">
     <!-- NO incluir <span>DoubleImpactStore</span> aquí -->
   </a>
 
