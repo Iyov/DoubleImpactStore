@@ -7,7 +7,7 @@ export const SOCIAL_LINKS = [
   {
     id: 'instagram1',
     icon: 'fa-brands fa-instagram',
-    label: 'Instagram DoubleImpactStore',
+    label: 'Instagram @DoubleImpactStore',
     i18n: 'social.instagram1',
     url: 'https://www.instagram.com/doubleimpactstore/',
     contact: true

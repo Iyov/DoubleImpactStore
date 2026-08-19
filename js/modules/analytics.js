@@ -6,8 +6,8 @@ import { logger } from './logger.js';
 export const ANALYTICS_CONFIG = {
   // Configura los IDs reales aquí o desde el despliegue.
   // Estos valores son placeholders: el sitio funciona sin ellos (fallback propio).
-  gtmId: '', // Google Tag Manager — ej. 'GTM-XXXXXXX'
-  ga4Id: '', // Google Analytics 4 — ej. 'G-XXXXXXXXXX'
+  gtmId: 'GTM-NB5CQ3VR', // Google Tag Manager — ej. 'GTM-XXXXXXX'
+  ga4Id: 'G-CHJJRHE1YK', // Google Analytics 4 — ej. 'G-XXXXXXXXXX'
   cloudflareToken: '' // Cloudflare Web Analytics beacon token
 };
 
