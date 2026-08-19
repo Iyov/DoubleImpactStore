@@ -48,8 +48,17 @@ El sitio funciona sin estas configuraciones (los componentes se ocultan o quedan
 
 3. **Contacto de seguridad** — `.well-known/security.txt` y las páginas `security-policy.html` / `security-acknowledgments.html` usan `security@doubleimpactstore.cl`.
 
-4. **Instagram (GitHub Actions)** — secret del repositorio:
-   - `INSTAGRAM_TOKEN` — token de larga duración de la Graph API de Instagram (el workflow `update-instagram.yml` corre cada 12 h y busca el hashtag `#DoubleImpactStoreWeb`). `api/update_instagram.py` genera las imágenes WebP responsivas y actualiza `js/instagram_posts.min.js`, el cache busting (`?v=`) y la versión del Service Worker. Nunca guardes el token en el repositorio.
+4. **Instagram (GitHub Actions + local)** — el token de la Graph API de Instagram se lee **solo** desde la variable de entorno `INSTAGRAM_TOKEN` (nunca se versiona en el repositorio). El workflow `update-instagram.yml` corre cada 12 h (o manualmente con *Run workflow*) y busca el hashtag `#DoubleImpactStoreWeb`. `api/update_instagram.py` genera las imágenes WebP responsivas (400/800/1200) y actualiza `js/instagram_posts.min.js`, el cache busting (`?v=`) y la versión del Service Worker.
+
+   - **En GitHub (producción):** configura el token como *Secret* del repositorio (Settings → Secrets and variables → Actions → *New repository secret* → nombre `INSTAGRAM_TOKEN`). Sin este secret el workflow falla a propósito con código de salida 1 y el mensaje *"No se encontró INSTAGRAM_TOKEN"*.
+   - **Local (desarrollo):** copia `.env.example` a `.env` y completa el valor:
+     ```bash
+     cp .env.example .env   # luego edita .env y pega tu token
+     python api/update_instagram.py
+     ```
+     `.env` está en `.gitignore` y nunca debe subirse al repositorio.
+   - Si el token es inválido o expira, el script termina con código de salida 1 para que el workflow falle visiblemente (requisito R7.6).
+   - El archivo `commit_message.txt` que genera el script es un artefacto temporal y también está en `.gitignore`.
 
 5. **Catálogo** — se carga en tiempo real desde Google Sheets (CSV). La hoja se enlaza en `js/modules/products.js` (`GOOGLE_SHEETS_CSV_URL`).
 
