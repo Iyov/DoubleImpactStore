@@ -20,6 +20,7 @@ Si el token es inválido/expirado, termina con código de salida 1.
 """
 
 import os
+import sys
 import json
 import requests
 import re
@@ -81,22 +82,25 @@ def fetch_instagram_media():
     url = f"https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,permalink,timestamp,like_count,children{{media_url,media_type}}&limit=25&access_token={ACCESS_TOKEN}"
 
     while url and len(all_media) < MAX_POSTS:
-        response = requests.get(url)
+        try:
+            response = requests.get(url, timeout=30)
+        except requests.RequestException as exc:
+            print(f"Error de red al conectar con Instagram: {exc}")
+            return None
+
         if response.status_code != 200:
             error_payload = response.json() if response.headers.get('content-type', '').startswith('application/json') else {}
             error_info = detect_instagram_error(error_payload)
             print(f"Error al conectar con Instagram: {response.text}")
-            if error_info['is_expired_token']:
-                print(error_info['message'])
-            break
+            print(error_info['message'])
+            return None
 
         data = response.json()
         if 'error' in data:
             error_info = detect_instagram_error(data)
             print(f"Error al conectar con Instagram: {json.dumps(data, ensure_ascii=False)}")
-            if error_info['is_expired_token']:
-                print(error_info['message'])
-            break
+            print(error_info['message'])
+            return None
 
         all_media.extend(data.get('data', []))
 
@@ -121,7 +125,7 @@ def process_image_variants(source_path, post_id):
                 img = img.convert("RGB")
             
             for size in sizes:
-                target_name = f"IG_{post_id}-{size}.webp"
+                target_name = f"IG_{post_id}_{size}.webp"
                 target_path = os.path.join(IMAGE_DIR, target_name)
                 
                 # Redimensionar manteniendo aspecto
@@ -153,9 +157,9 @@ def download_image(url, post_id):
     
     # Si ya existen todas las variantes, no descargamos de nuevo
     variants_exist = all([
-        os.path.exists(os.path.join(IMAGE_DIR, f"IG_{post_id}-400.webp")),
-        os.path.exists(os.path.join(IMAGE_DIR, f"IG_{post_id}-800.webp")),
-        os.path.exists(os.path.join(IMAGE_DIR, f"IG_{post_id}-1200.webp")),
+        os.path.exists(os.path.join(IMAGE_DIR, f"IG_{post_id}_400.webp")),
+        os.path.exists(os.path.join(IMAGE_DIR, f"IG_{post_id}_800.webp")),
+        os.path.exists(os.path.join(IMAGE_DIR, f"IG_{post_id}_1200.webp")),
         os.path.exists(final_path)
     ])
     
@@ -326,9 +330,9 @@ def cleanup_removed_images(old_posts, new_posts):
             # Eliminar todas las variantes de imagen para este post
             variants = [
                 os.path.join(IMAGE_DIR, f"IG_{raw_id}.jpeg"),
-                os.path.join(IMAGE_DIR, f"IG_{raw_id}-400.webp"),
-                os.path.join(IMAGE_DIR, f"IG_{raw_id}-800.webp"),
-                os.path.join(IMAGE_DIR, f"IG_{raw_id}-1200.webp"),
+                os.path.join(IMAGE_DIR, f"IG_{raw_id}_400.webp"),
+                os.path.join(IMAGE_DIR, f"IG_{raw_id}_800.webp"),
+                os.path.join(IMAGE_DIR, f"IG_{raw_id}_1200.webp"),
             ]
             for path in variants:
                 if os.path.exists(path):
@@ -408,7 +412,7 @@ def update_files(new_posts):
     if os.path.exists(INDEX_FILE_PATH):
         with open(INDEX_FILE_PATH, 'r', encoding='utf-8') as f:
             html = f.read()
-        pattern = r"instagram_posts\.min\.js\?v=[^']+"
+        pattern = r"instagram_posts\.min\.js\?v=[^\"']+"
         replacement = f"instagram_posts.min.js?v={new_version}"
         new_html = re.sub(pattern, replacement, html)
         with open(INDEX_FILE_PATH, 'w', encoding='utf-8') as f:
@@ -427,9 +431,9 @@ def update_files(new_posts):
         for p in new_posts:
             base_id = p['image'].split('/')[-1].replace('.jpeg', '')
             full_images_list.append(f"    '/img/{base_id}.jpeg'")
-            full_images_list.append(f"    '/img/{base_id}-400.webp'")
-            full_images_list.append(f"    '/img/{base_id}-800.webp'")
-            full_images_list.append(f"    '/img/{base_id}-1200.webp'")
+            full_images_list.append(f"    '/img/{base_id}_400.webp'")
+            full_images_list.append(f"    '/img/{base_id}_800.webp'")
+            full_images_list.append(f"    '/img/{base_id}_1200.webp'")
         
         new_images_js = "const INSTAGRAM_IMAGES = [\n" + ",\n".join(full_images_list) + "\n];"
         sw_content = re.sub(r"const INSTAGRAM_IMAGES = \[.*?\];", new_images_js, sw_content, flags=re.DOTALL)
@@ -443,9 +447,12 @@ def update_files(new_posts):
 if __name__ == "__main__":
     if not ACCESS_TOKEN:
         print("Error: No se encontró INSTAGRAM_TOKEN. Configúralo como variable de entorno o en el archivo .env")
-        import sys
         sys.exit(1)
-    else:
-        media = fetch_instagram_media()
-        processed = process_posts(media)
-        update_files(processed)
+
+    media = fetch_instagram_media()
+    if media is None:
+        print("Error: No se pudieron obtener los posts de Instagram. Revisa el token en INSTAGRAM_TOKEN.")
+        sys.exit(1)
+
+    processed = process_posts(media)
+    update_files(processed)

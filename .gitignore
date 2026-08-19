@@ -25,6 +25,16 @@ logs/
 
 # ========== SECRETOS ==========
 .env
+.env.local
+.env.*
+!.env.example
+
+# ========== ARTEFACTOS DE AUTOMATIZACIÓN ==========
+commit_message.txt
+
+# ========== PYTHON ==========
+__pycache__/
+*.pyc
 
 # ========== TESTS / COBERTURA ==========
 coverage/

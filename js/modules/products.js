@@ -67,38 +67,71 @@ export function parseCSV(text) {
     .filter((r) => r.some((cell) => cell !== ''));
 }
 
+// Mapa de columnas del catálogo. Posicional por defecto (la hoja real solo
+// etiqueta Product/Platform/Link y deja el resto de encabezados vacíos).
+const COLUMN_MAP = {
+  num: 0,
+  name: 1,
+  platform: 2,
+  price: 3,
+  neto: 4,
+  stock: 5,
+  link: 6,
+  sold: 7
+};
+
+function detectColumnMap(rows) {
+  const headerIdx = rows.findIndex((row) => row.includes('Product'));
+  if (headerIdx < 0) return { map: { ...COLUMN_MAP }, dataStart: 1 };
+  const header = rows[headerIdx];
+  const pos = (col) => header.indexOf(col);
+  const map = { ...COLUMN_MAP };
+  const named = {
+    num: 'Num',
+    name: 'Product',
+    platform: 'Platform',
+    price: 'Price',
+    neto: 'Neto',
+    stock: 'Stock',
+    link: 'Link',
+    sold: 'Sold'
+  };
+  for (const key of Object.keys(named)) {
+    const p = pos(named[key]);
+    if (p >= 0) map[key] = p;
+  }
+  return { map, dataStart: headerIdx + 1 };
+}
+
+function isValidProductRow(p) {
+  const name = p.name.trim().toLowerCase();
+  if (!name || name === 'product' || name === 'total') return false;
+  const num = Number(p.num);
+  return Number.isInteger(num) && num > 0;
+}
+
 export function parseCatalogCSV(text) {
   const rows = parseCSV(text);
   if (rows.length < 2) return [];
-  const headers = rows[0];
-  const indexOf = (col) => headers.indexOf(col);
-  const numIdx = indexOf('Num');
-  const nameIdx = indexOf('Product');
-  const platformIdx = indexOf('Platform');
-  const priceIdx = indexOf('Price');
-  const netoIdx = indexOf('Neto');
-  const stockIdx = indexOf('Stock');
-  const linkIdx = indexOf('Link');
-  const soldIdx = indexOf('Sold');
-
-  const cell = (row, idx) => (idx >= 0 && row[idx] != null ? row[idx] : '');
+  const { map, dataStart } = detectColumnMap(rows);
+  const cell = (row, idx) => (row[idx] != null ? row[idx] : '');
 
   return rows
-    .slice(1)
+    .slice(dataStart)
     .map((row) => {
-      const link = cell(row, linkIdx);
+      const link = cell(row, map.link);
       return {
-        num: cell(row, numIdx),
-        name: cell(row, nameIdx),
-        platform: cell(row, platformIdx),
-        price: cell(row, priceIdx),
-        neto: cell(row, netoIdx),
-        stock: cell(row, stockIdx),
+        num: cell(row, map.num),
+        name: cell(row, map.name),
+        platform: cell(row, map.platform),
+        price: cell(row, map.price),
+        neto: cell(row, map.neto),
+        stock: cell(row, map.stock),
         instagramLink: link ? `https://www.instagram.com/p/${link}/` : '',
-        sold: cell(row, soldIdx) === '1'
+        sold: cell(row, map.sold) === '1'
       };
     })
-    .filter((p) => p.name !== '');
+    .filter(isValidProductRow);
 }
 
 export function filterProducts(products, query, platforms, showSold) {

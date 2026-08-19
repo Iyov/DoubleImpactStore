@@ -87,6 +87,31 @@ describe('products.js', () => {
     expect(parseCatalogCSV('Solo\nUna\nColumna')).toEqual([]);
   });
 
+  it('parseCatalogCSV soporta el formato real de la hoja (encabezados parciales, filas basura y fila Total)', () => {
+    // Formato real del Google Sheet: solo Product/Platform/Link etiquetados,
+    // fila inicial de metadatos, valores posicionales y fila Total final.
+    const csv = [
+      '"","","","","","","100%","100%","17/8"',
+      '"","Product","Platform","","","","Link","",""',
+      '"23","Grudge Warriors (BL-CIB)","PS1","$15","$15,000","1","DMwPmoFsgMg","",""',
+      '"33","Romance IV (BL-CIB)","PS1","$20","$20,000","1","","",""',
+      '"","","Total","$7,044","$7,043,500","941","923","0",""'
+    ].join('\n');
+    const products = parseCatalogCSV(csv);
+    expect(products.length).toBe(2);
+    expect(products[0]).toMatchObject({
+      num: '23',
+      name: 'Grudge Warriors (BL-CIB)',
+      platform: 'PS1',
+      price: '$15',
+      neto: '$15,000',
+      stock: '1',
+      instagramLink: 'https://www.instagram.com/p/DMwPmoFsgMg/',
+      sold: false
+    });
+    expect(products[1].instagramLink).toBe('');
+  });
+
   it('paginateProducts pagina, recorta páginas y calcula totales', () => {
     const products = Array.from({ length: 60 }, (_, i) => ({ name: `Juego ${i}`, platform: 'PS1' }));
     const page1 = paginateProducts(products, 1, 25);
