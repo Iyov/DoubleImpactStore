@@ -1027,6 +1027,17 @@ h1, h2, h3, h4 {
   margin: 0;
 }
 
+.location-block address {
+  display: grid;
+  gap: 8px;
+  font-style: normal;
+}
+
+.location-block .text-link {
+  display: inline-block;
+  margin-top: 14px;
+}
+
 .social-links {
   display: flex;
   flex-wrap: wrap;
@@ -1078,6 +1089,14 @@ h1, h2, h3, h4 {
 .footer-tagline {
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+.footer-location {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin-top: 8px;
+  max-width: 310px;
 }
 
 .footer-nav ul {
