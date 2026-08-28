@@ -5,6 +5,14 @@
 
 export const SOCIAL_LINKS = [
   {
+    id: 'facebook',
+    icon: 'fa-brands fa-facebook',
+    label: 'Facebook',
+    i18n: 'social.facebook',
+    url: 'https://www.facebook.com/doubleimpactstore/',
+    contact: true
+  },
+  {
     id: 'instagram1',
     icon: 'fa-brands fa-instagram',
     label: 'Instagram @DoubleImpactStore',
