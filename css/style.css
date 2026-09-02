@@ -1038,6 +1038,23 @@ h1, h2, h3, h4 {
   margin-top: 14px;
 }
 
+.location-block .location-img {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin: 18px auto 0;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 480px) {
+  .location-block .location-img {
+    max-width: 260px;
+  }
+}
+
 .social-links {
   display: flex;
   flex-wrap: wrap;
