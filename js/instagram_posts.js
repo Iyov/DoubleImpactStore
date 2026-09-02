@@ -1,7 +1,17 @@
 // ========== DATOS DE POSTS DE INSTAGRAM AUTOMATIZADOS ==========
-// Última actualización: 2026-08-25 12:34:49
+// Última actualización: 2026-09-02 02:20:46
 
 const INSTAGRAM_POSTS_DATA = [
+    {
+        "id": "ig_auto_18193280038391274",
+        "image": "img/IG_18193280038391274.jpeg",
+        "title": "Les mostramos nuestro nuevo local en Persa Bio Bio",
+        "description": "📍 Bio Bio 654, cerca de Victor Manuel\n📌 Metro Bio Bio L3\n➡ Local Nº58\n¡Nos vemos!\n\n #RopavejeroRetroWeb",
+        "link": "https://www.instagram.com/p/DcwcSjFCVTy/",
+        "media_type": "CAROUSEL_ALBUM",
+        "date": "2026-09-01",
+        "likes": 125
+    },
     {
         "id": "ig_auto_18000081161993610",
         "image": "img/IG_18000081161993610.jpeg",
