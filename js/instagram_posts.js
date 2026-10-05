@@ -1,7 +1,17 @@
 // ========== DATOS DE POSTS DE INSTAGRAM AUTOMATIZADOS ==========
-// Última actualización: 2026-09-22 16:04:14
+// Última actualización: 2026-10-05 03:28:41
 
 const INSTAGRAM_POSTS_DATA = [
+    {
+        "id": "ig_auto_18017864282938392",
+        "image": "img/IG_18017864282938392.jpeg",
+        "title": "Consolas portátiles Nintendo disponibles",
+        "description": "\nPersa Bio Bio\n📍 Bio Bio 654, frente al McDonald's\n📌 Metro Bio Bio L3\n➡ Local Nº58\n\n🕒 De 11:00 a 18:00 hrs\n🎟 Entrada liberada\n🎮 Llevaremos nuestros juegos\n📅 Domingo 04 de Octubre de 2026\n¡Nos vemos!",
+        "link": "https://www.instagram.com/p/DeFME-Lieb7/",
+        "media_type": "CAROUSEL_ALBUM",
+        "date": "2026-10-04",
+        "likes": 35
+    },
     {
         "id": "ig_auto_18193280038391274",
         "image": "img/IG_18193280038391274.jpeg",
