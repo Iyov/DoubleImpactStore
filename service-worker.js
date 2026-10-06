@@ -2,7 +2,7 @@
  * Estrategia: cache-first para recursos estáticos, network-first con fallback a caché para el CSV del catálogo.
  * Nombre de caché: doubleimpact-v{YYYY-MM-DD} — la versión la actualiza api/update_instagram.py automáticamente.
  */
-const CACHE_VERSION = '2026-10-05_0328';
+const CACHE_VERSION = '2026-10-06_0416';
 const CACHE_NAME = `doubleimpact-v${CACHE_VERSION}`;
 
 const CORE_ASSETS = [

@@ -1,5 +1,5 @@
 // ========== DATOS DE POSTS DE INSTAGRAM AUTOMATIZADOS ==========
-// Última actualización: 2026-10-05 03:28:41
+// Última actualización: 2026-10-06 04:16:35
 
 const INSTAGRAM_POSTS_DATA = [
     {
@@ -10,7 +10,7 @@ const INSTAGRAM_POSTS_DATA = [
         "link": "https://www.instagram.com/p/DeFME-Lieb7/",
         "media_type": "CAROUSEL_ALBUM",
         "date": "2026-10-04",
-        "likes": 35
+        "likes": 48
     },
     {
         "id": "ig_auto_18193280038391274",
@@ -40,7 +40,7 @@ const INSTAGRAM_POSTS_DATA = [
         "link": "https://www.instagram.com/p/DbKUCU0jQl4/",
         "media_type": "IMAGE",
         "date": "2026-07-24",
-        "likes": 15
+        "likes": 16
     }
 ];
 
