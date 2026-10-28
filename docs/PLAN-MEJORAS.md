@@ -66,7 +66,7 @@ Resultado de la auditoría del 2026-10-28. El sitio cumple casi toda la especifi
 
 **Criterio de aceptación:** un post nuevo con `#DoubleImpactStoreWeb` aparece en producción sin intervención manual; cambios de likes no generan commits; todas las páginas comparten `?v=`.
 
-**Resultado:** prueba real contra la API con solo cambios de likes → "No hay cambios significativos", sin escribir archivos. Pendiente del dueño: crear el secret `GH_PAT` para que la renovación automática funcione.
+**Resultado:** prueba real contra la API con solo cambios de likes → "No hay cambios significativos", sin escribir archivos. `GH_PAT` configurado el 2026-10-28; primera renovación automática: 2026-11-01 09:00 UTC (Instagram exige que el token tenga ≥24 h).
 
 ## Fase 3 — Seguridad efectiva en producción
 
@@ -141,7 +141,7 @@ Pasos (A, y B o C si el dueño lo aprueba):
 | Elemento | Dónde | Necesario para |
 |---|---|---|
 | `INSTAGRAM_TOKEN` | Secret de Actions | Renovado el 2026-10-28 (vence ~2026-12-27 si no corre la renovación automática) |
-| `GH_PAT`: PAT fine-grained, solo este repo, permiso "Secrets: Read and write" | Secret de Actions | **Pendiente.** Renovación automática del token (Fase 2.4) |
+| `GH_PAT`: PAT fine-grained, solo este repo, permiso "Secrets: Read and write" | Secret de Actions | Configurado el 2026-10-28. Renovación automática del token (Fase 2.4) |
 | Decisión de hosting/Cloudflare proxy | — | Cabeceras completas (Fase 3.4) |
 | Token de Cloudflare Web Analytics | `js/modules/analytics.js` → `cloudflareToken` | Issue 18 |
 | Fuente de Pages: hoy "Deploy from a branch"; pasar a "GitHub Actions" | Settings → Pages | Fases 2.1 y 5.2 |
