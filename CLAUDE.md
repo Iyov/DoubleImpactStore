@@ -21,7 +21,8 @@ npx playwright test tests/e2e/home.spec.js -g "FAQ"   # un E2E
 npx playwright install chromium            # necesario la primera vez (si no, todos los E2E fallan)
 npm run minify                             # = build = `node watcher.js --once`; regenera todos los *.min.*
 npm run watch                              # minificador en modo watch
-npm run check                              # check-siglas, check-manifest, check-brand, check-minification
+npm run check                              # check-siglas, check-manifest, check-brand, check-csp, check-minification
+npm run csp                                # regenera la CSP (<meta> en cada *.html + .htaccess)
 npm run test:py                            # pytest de api/ (pip install -r requirements-dev.txt)
 python api/update_instagram.py             # requiere INSTAGRAM_TOKEN (env o .env); escribe archivos solo si hay cambios
 ```
@@ -52,7 +53,7 @@ Las páginas HTML referencian **archivos minificados**: `css/style.min.css`, `cs
 - `siglas.js` — detecta claves de `js/siglas.json` (`{ SIGLA: { es, en } }`) en nombres de producto; siglas de 1 carácter solo como token aislado.
 - `instagram.js` — filtra posts por consola usando `js/console_aliases.json` (substring sobre `post.title`).
 - `efemerides.js` — `js/efemerides.json`, clave `DD/MM`; si no hay entrada la sección se oculta.
-- `analytics.js` — `ANALYTICS_CONFIG` (IDs de GTM/GA4/Cloudflare). GTM también está inyectado inline en el `<head>` de cada HTML con el mismo ID: si cambias el ID, cambia ambos. Fallback local en `dis_analytics_events` si hay bloqueador.
+- `analytics.js` — `ANALYTICS_CONFIG` (IDs de GTM/GA4/Cloudflare). GTM también está inyectado inline en el `<head>` de cada HTML con el mismo ID: si cambias el ID, cambia ambos (y ejecuta `npm run csp`, porque cambia el hash). Si GTM está presente, `loadGa4()` **no** carga GA4 (para no contar doble): GA4 debe configurarse como etiqueta dentro del contenedor GTM. Fallback local en `dis_analytics_events` si hay bloqueador.
 - `utils.js` — `sanitizeHTML`, `validateSearch` (máx. 100 chars), `debounce`, `sortProducts`, `handleError` (emite `dis:error`).
 
 Claves de `localStorage`: `dis_theme` (default `dark`), `dis_lang` (default `es`), `dis_catalog_cache`, `dis_analytics_events`.
@@ -77,7 +78,13 @@ Por eso el historial está lleno de commits "Se modificaron N post desde Instagr
 
 ### Despliegue y seguridad
 
-La fuente de GitHub Pages es "Deploy from a branch" (`main`, raíz): el build automático `pages-build-deployment` publica el repo completo en cada push, incluidos los del bot de Instagram. No hay workflow de deploy propio (se eliminó `deploy-pages.yml` por duplicar el despliegue). "Enforce HTTPS" está desactivado. **GitHub Pages ignora `.htaccess`**: la CSP, las cabeceras de seguridad, HSTS y los rewrites de `.htaccess` no se aplican en producción (ver plan). Si añades orígenes externos (scripts, imágenes, `fetch`), actualiza la CSP donde se aplique realmente.
+La fuente de GitHub Pages es "Deploy from a branch" (`main`, raíz): el build automático `pages-build-deployment` publica el repo completo en cada push, incluidos los del bot de Instagram. No hay workflow de deploy propio (se eliminó `deploy-pages.yml` por duplicar el despliegue).
+
+**Cloudflare está delante** del dominio (proxy, certificado de Cloudflare): por eso GitHub no emite certificado y "Enforce HTTPS" de Pages no se puede activar; la redirección HTTPS, HSTS y demás cabeceras se configuran en Cloudflare. Cloudflare inyecta en el HTML el decodificador de emails (`/cdn-cgi/...`, permitido por `'self'`) y, si "JavaScript Detections" está activo, un script inline que la CSP bloquea.
+
+**GitHub Pages ignora `.htaccess`**: queda como referencia para Apache/Cloudflare. La CSP real es el `<meta http-equiv="Content-Security-Policy">` de cada página, generado por `scripts/csp.js` (fuente única de la política; también escribe la línea de `.htaccess`). `script-src` autoriza el snippet inline de GTM por hash SHA-256, sin `'unsafe-inline'`:
+- Si cambias o agregas un `<script>` inline, o un origen externo (scripts, imágenes, `fetch`), edita `DIRECTIVES` en `scripts/csp.js` y ejecuta `npm run csp`. `npm run check` (`check:csp`) falla si quedó desincronizado, y `tests/e2e/security.spec.js` falla ante cualquier violación de CSP.
+- No uses atributos `on*=` ni scripts inline sin regenerar: la CSP los bloquea.
 
 ### Tests
 

@@ -34,6 +34,8 @@ Resultado de la auditoría del 2026-10-28. El sitio cumple casi toda la especifi
 | 16 | Excepciones de `requests` impresas con la URL completa (incluye `access_token`); GitHub enmascara secrets, pero conviene no depender de eso | Baja | 2 |
 | 17 | `AGENTS v0.2.md` y `AGENTS v0.3.md` obsoletos en la raíz | Baja | 5 |
 | 18 | `cloudflareToken` vacío en `analytics.js` | Config | — |
+| 19 | Cloudflare (ya delante del dominio) inyecta un script inline de "JavaScript Detections" que la CSP bloquea | Baja | 3 |
+| 20 | **Analytics no mide nada:** el contenedor `GTM-NB5CQ3VR` está vacío (`"tags":[]`) y `analytics.js` no carga GA4 cuando GTM está presente | Alta | Config |
 
 ---
 
@@ -68,30 +70,26 @@ Resultado de la auditoría del 2026-10-28. El sitio cumple casi toda la especifi
 
 **Resultado:** prueba real contra la API con solo cambios de likes → "No hay cambios significativos", sin escribir archivos. `GH_PAT` configurado el 2026-10-28; primera renovación automática: 2026-11-01 09:00 UTC (Instagram exige que el token tenga ≥24 h).
 
-## Fase 3 — Seguridad efectiva en producción
+## Fase 3 — Seguridad efectiva en producción ✅ completada (parte en el sitio; quedan ajustes en Cloudflare)
 
-**Issue:** 1
+**Issues:** 1, 19
 
-GitHub Pages no permite cabeceras HTTP propias. Opciones:
+Se eligió la opción A (CSP en `<meta>`). Durante la fase se descubrió que **Cloudflare ya está delante del dominio** (`server: cloudflare`, certificado de Google Trust Services emitido por Cloudflare), así que la opción B solo requiere configuración en el panel de Cloudflare, sin mover DNS.
 
-| Opción | Cubre | Costo |
-|---|---|---|
-| **A. `<meta>` en cada HTML (recomendada como base)** | CSP (excepto `frame-ancestors`, `report-uri`, `sandbox`), Referrer-Policy | Bajo |
-| B. Cloudflare delante del dominio (proxy) + Transform Rules / Worker | Todas las cabeceras, HSTS, redirect HTTPS, `frame-ancestors` | Configuración externa; ya se usa Cloudflare para analytics |
-| C. Migrar hosting a Cloudflare Pages / Netlify con archivo `_headers` | Todas las cabeceras | Cambio de hosting |
+Hecho:
+1. `scripts/csp.js` es la fuente única de la política: escribe `<meta http-equiv="Content-Security-Policy">` + `<meta name="referrer" content="strict-origin-when-cross-origin">` al inicio del `<head>` de cada `*.html` (antes del snippet de GTM) y la cabecera de `.htaccess` (con `frame-ancestors 'none'`). `npm run csp` regenera; `npm run check:csp` (incluido en `npm run check`) falla si algo se desincroniza, si el `<meta>` va después de un `<script>` o si hay manejadores `on*=` inline.
+2. `script-src` sin `'unsafe-inline'`: el snippet de GTM se autoriza por hash SHA-256 (calculado con CRLF→LF, como hace el parser HTML). Orígenes de GTM/GA4 según la guía de Google (`*.googletagmanager.com`, `*.google-analytics.com`, `*.analytics.google.com`) y Cloudflare Web Analytics. Se quitaron orígenes sin uso (`www.googleapis.com`, `www.instagram.com` en `img-src`) y se añadió `upgrade-insecure-requests`.
+3. "Enforce HTTPS" de GitHub Pages **no se puede activar**: GitHub no emite certificado porque Cloudflare hace de proxy (API: "The certificate does not exist yet"). La redirección se hace en Cloudflare (ver abajo).
+4. `.htaccess` se conserva como referencia (Apache/Cloudflare), con un encabezado que aclara que GitHub Pages lo ignora.
+5. E2E `tests/e2e/security.spec.js`: cero violaciones de CSP en las 5 páginas, `<meta>` sin `'unsafe-inline'`, y un script inline inyectado queda bloqueado. Verificación puntual con red real: el catálogo carga 25 filas desde Google Sheets y GTM carga, sin violaciones.
 
-Pasos (A, y B o C si el dueño lo aprueba):
+Pendiente en el panel de Cloudflare (lo hace el dueño):
+- **SSL/TLS → Edge Certificates → Always Use HTTPS: On.** Hoy `http://doubleimpactstore.cl` responde 200 sin redirigir.
+- **SSL/TLS → Edge Certificates → HSTS:** activar (`max-age` 6 meses, sin preload al inicio).
+- **Rules → Transform Rules → Modify Response Header** (todas las peticiones): `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`. La CSP puede seguir solo en `<meta>`; si se agrega como cabecera, copiar la línea de `.htaccess` (incluye `frame-ancestors 'none'`).
+- **Issue 19 — JavaScript Detections:** Cloudflare inyecta en cada página un script inline de detección de bots (`window.__CF$cv$params`, contenido distinto en cada petición, imposible de autorizar por hash), que la CSP bloquea con un error en consola. El sitio funciona igual. Desactivarlo en **Security → Settings (o Bots) → JavaScript Detections: Off** elimina el error.
 
-1. Añadir en `<head>` de `index.html`, `productos.html`, `404.html`, `security-policy.html`, `security-acknowledgments.html`, **antes** del snippet de GTM:
-   - `<meta http-equiv="Content-Security-Policy" content="...">` con la misma política de `.htaccess` (sin `frame-ancestors`).
-   - `<meta name="referrer" content="strict-origin-when-cross-origin">`.
-2. Sustituir `'unsafe-inline'` en `script-src` por el hash `sha256-…` del snippet inline de GTM (es estático). Generar el hash con un script en `scripts/` y verificarlo en `npm run check` para que no se desincronice.
-3. Activar "Enforce HTTPS" en Settings → Pages (cubre el redirect HTTPS).
-4. Para `X-Frame-Options`/`frame-ancestors`, HSTS y `X-Content-Type-Options`: requiere B o C. Documentar la decisión.
-5. Mantener `.htaccess` solo si se planea hosting Apache; si no, eliminarlo y actualizar `design.md` para no dar una falsa sensación de protección.
-6. E2E: verificar que no haya violaciones de CSP en consola (`page.on('console')` + `securitypolicyviolation`).
-
-**Criterio de aceptación:** `curl -I https://doubleimpactstore.cl` o DevTools muestran la CSP efectiva; cero violaciones CSP en la consola con GTM/GA4 activos.
+**Criterio de aceptación:** cero violaciones CSP en la consola con GTM activo (cumplido en local y con red real; en producción, tras desactivar JavaScript Detections); redirección HTTPS y cabeceras visibles en `curl -I` (tras los ajustes de Cloudflare).
 
 ## Fase 4 — Build y PWA
 
@@ -142,7 +140,8 @@ Pasos (A, y B o C si el dueño lo aprueba):
 |---|---|---|
 | `INSTAGRAM_TOKEN` | Secret de Actions | Renovado el 2026-10-28 (vence ~2026-12-27 si no corre la renovación automática) |
 | `GH_PAT`: PAT fine-grained, solo este repo, permiso "Secrets: Read and write" | Secret de Actions | Configurado el 2026-10-28. Renovación automática del token (Fase 2.4) |
-| Decisión de hosting/Cloudflare proxy | — | Cabeceras completas (Fase 3.4) |
+| Ajustes de Cloudflare: Always Use HTTPS, HSTS, Transform Rule de cabeceras, JavaScript Detections off | Panel de Cloudflare | Fase 3 (pendientes) |
+| Etiqueta "Google tag" con `G-CHJJRHE1YK`, activador All Pages, y publicar | Panel de GTM (`GTM-NB5CQ3VR`) | Issue 20 |
 | Token de Cloudflare Web Analytics | `js/modules/analytics.js` → `cloudflareToken` | Issue 18 |
 | Fuente de Pages: hoy "Deploy from a branch"; pasar a "GitHub Actions" | Settings → Pages | Fases 2.1 y 5.2 |
 

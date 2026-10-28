@@ -15,7 +15,9 @@
     "check:minification": "node scripts/check-minification.js",
     "check:manifest": "node scripts/check-manifest.js",
     "check:brand": "node scripts/check-brand.js",
-    "check": "npm run check:siglas && npm run check:manifest && npm run check:brand && npm run check:minification"
+    "check": "npm run check:siglas && npm run check:manifest && npm run check:brand && npm run check:csp && npm run check:minification",
+    "csp": "node scripts/csp.js",
+    "check:csp": "node scripts/csp.js --check"
   },
   "keywords": [
     "doubleimpactstore",
