@@ -1,5 +1,5 @@
 // ========== DATOS DE POSTS DE INSTAGRAM AUTOMATIZADOS ==========
-// Última actualización: 2026-10-15 02:42:59
+// Última actualización: 2026-10-28 21:03:20
 
 const INSTAGRAM_POSTS_DATA = [
     {
@@ -10,7 +10,7 @@ const INSTAGRAM_POSTS_DATA = [
         "link": "https://www.instagram.com/p/DeFME-Lieb7/",
         "media_type": "CAROUSEL_ALBUM",
         "date": "2026-10-04",
-        "likes": 53
+        "likes": 54
     },
     {
         "id": "ig_auto_18193280038391274",
