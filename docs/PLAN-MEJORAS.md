@@ -9,16 +9,17 @@ Resultado de la auditoría del 2026-10-28. El sitio cumple casi toda la especifi
 | `npm test` | 42/42 OK (7 archivos, incluye propiedades fast-check) |
 | `npm run check` | **Falla** `check:brand` por `#RopavejeroRetroWeb` en el caption de un post real (`js/instagram_posts.js`) |
 | `npm run test:e2e` | 17/17 fallan por entorno: navegadores de Playwright no instalados. Estado real desconocido |
-| Último commit del bot de Instagram | 2026-10-15 (13 días sin actualizar al momento de la auditoría) |
+| Último commit del bot de Instagram | 2026-10-15. El workflow falla desde el 2026-10-18: **el token venció** (`OAuthException 190: Session has expired on 18-Oct-26`). El de `.env` local es el mismo y también está vencido |
+| Fuente de GitHub Pages | `Deploy from a branch` (`main` /, `build_type: legacy`), "Enforce HTTPS" **desactivado** (`http://` responde 200 sin redirigir). `/AGENTS.md` es público |
 
 ## Resumen de issues
 
 | # | Issue | Severidad | Fase |
 |---|---|---|---|
 | 1 | Cabeceras de seguridad (CSP, X-Frame-Options, Referrer-Policy, HSTS, redirect HTTPS) no se aplican: GitHub Pages ignora `.htaccess` | Alta | 3 |
-| 2 | Commits del bot de Instagram no disparan `deploy-pages.yml` (commits con `GITHUB_TOKEN` no activan otros workflows) | Alta | 2 |
+| 2 | ~~Commits del bot no se publican~~ **Descartado:** Pages publica desde la rama y `pages-build-deployment` sí corre con los commits del bot. Problema real: cada push se despliega **dos veces** (build de rama + `deploy-pages.yml`, redundante) | Media | 2 |
 | 3 | Un cambio de `likes` dispara commit + nuevo `CACHE_VERSION` → todos los usuarios descargan de nuevo el sitio | Alta | 2 |
-| 4 | Token de Instagram no se renueva; expira a los 60 días y el workflow deja de funcionar | Alta | 2 |
+| 4 | Token de Instagram no se renueva; expira a los 60 días. **Ya ocurrió:** vencido desde el 2026-10-18; un token vencido no se puede refrescar por API, hay que generar uno nuevo en Meta | Alta | 2 |
 | 5 | `productos.html` y `404.html` cargan `instagram_posts.min.js?v=2026-09-02_1`; el script solo actualiza `index.html` | Alta | 2 |
 | 6 | `check:brand` falla por contenido real de Instagram (falso positivo) | Media | 1 |
 | 7 | Módulos minificados no se usan: `index.min.js` importa `./modules/*.js` sin minificar y sin `?v=` | Media | 4 |
@@ -54,10 +55,10 @@ Resultado de la auditoría del 2026-10-28. El sitio cumple casi toda la especifi
 
 **Issues:** 2, 3, 4, 5, 16
 
-1. **Despliegue tras actualizar (2):** en `update-instagram.yml`, después del push, invocar el deploy: añadir `workflow_call` a `deploy-pages.yml` y llamarlo como job dependiente, o `gh workflow run deploy-pages.yml` con permiso `actions: write`. Verificar primero en Settings → Pages si la fuente es "GitHub Actions" (si es "Deploy from branch", `deploy-pages.yml` sobra y hay que eliminarlo).
+1. **Despliegue duplicado (2):** la fuente de Pages es "Deploy from a branch", así que `deploy-pages.yml` es redundante. Opción elegida en coordinación con la fase 5: cambiar la fuente a "GitHub Actions" (necesario para no publicar `AGENTS*.md`, `.kiro/`, `tests/`), y entonces hacer que `deploy-pages.yml` se dispare también con `workflow_run` al terminar `Actualizar Instagram Posts` (los pushes con `GITHUB_TOKEN` no activan otros workflows). Hasta ese cambio, no tocar la fuente.
 2. **Ignorar likes (3):** quitar `likes` de `posts_have_changed` y `count_changes` en `api/update_instagram.py`. Si se quiere mostrar likes actualizados, actualizarlos solo cuando ya hay otro cambio.
 3. **No invalidar la PWA por datos (3):** subir `CACHE_VERSION` solo cuando cambian assets estáticos. Para datos de Instagram, servir `instagram_posts` con estrategia stale-while-revalidate en el Service Worker en lugar de cache-first + versión global.
-4. **Renovar token (4):** añadir un paso que llame a `GET https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=…` y actualice el secret con `gh secret set INSTAGRAM_TOKEN` (requiere un PAT con permiso de secrets guardado como `GH_PAT`, documentar). Como mínimo, programar un workflow mensual que falle con mensaje claro si el token vence en <10 días.
+4. **Renovar token (4):** primero, el dueño genera un token nuevo en Meta (Instagram API with Instagram Login → token de larga duración) y se carga con `gh secret set INSTAGRAM_TOKEN`. Después, añadir un paso que llame a `GET https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=…` y actualice el secret con `gh secret set INSTAGRAM_TOKEN` (requiere un PAT con permiso de secrets guardado como `GH_PAT`, documentar). Como mínimo, programar un workflow mensual que falle con mensaje claro si el token vence en <10 días.
 5. **Versionado en todas las páginas (5):** la regex de `update_instagram.py` debe recorrer `index.html`, `productos.html` y `404.html` (o todo `*.html`).
 6. **Logs sin token (16):** no imprimir `str(exc)` de `requests` crudo; imprimir solo tipo de error y código HTTP.
 7. Reemplazar `git add .` por rutas explícitas (`js/instagram_posts*.js img/ index.html productos.html 404.html service-worker*.js`).
@@ -137,11 +138,11 @@ Pasos (A, y B o C si el dueño lo aprueba):
 
 | Elemento | Dónde | Necesario para |
 |---|---|---|
-| `INSTAGRAM_TOKEN` | Secret de Actions | Fase 2 (ya existe; verificar vigencia) |
+| `INSTAGRAM_TOKEN` | Secret de Actions | **Urgente:** vencido el 2026-10-18; generar uno nuevo |
 | `GH_PAT` con permiso de secrets | Secret de Actions | Renovación automática del token (Fase 2.4) |
 | Decisión de hosting/Cloudflare proxy | — | Cabeceras completas (Fase 3.4) |
 | Token de Cloudflare Web Analytics | `js/modules/analytics.js` → `cloudflareToken` | Issue 18 |
-| Fuente de Pages (Actions vs branch) | Settings → Pages | Fase 2.1 |
+| Fuente de Pages: hoy "Deploy from a branch"; pasar a "GitHub Actions" | Settings → Pages | Fases 2.1 y 5.2 |
 
 ## Orden recomendado
 

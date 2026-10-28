@@ -74,7 +74,7 @@ Por eso el historial está lleno de commits "Se modificaron N post desde Instagr
 
 ### Despliegue y seguridad
 
-`.github/workflows/deploy-pages.yml` sube el repo completo (`path: '.'`) a GitHub Pages en cada push a `main`. **GitHub Pages ignora `.htaccess`**: la CSP, las cabeceras de seguridad, HSTS y los rewrites de `.htaccess` no se aplican en producción (ver plan). Si añades orígenes externos (scripts, imágenes, `fetch`), actualiza la CSP donde se aplique realmente.
+La fuente de GitHub Pages es "Deploy from a branch" (`main`, raíz): el build automático `pages-build-deployment` publica el repo completo en cada push, incluidos los del bot de Instagram. `.github/workflows/deploy-pages.yml` es redundante con eso (doble despliegue; ver plan, fase 2). "Enforce HTTPS" está desactivado. **GitHub Pages ignora `.htaccess`**: la CSP, las cabeceras de seguridad, HSTS y los rewrites de `.htaccess` no se aplican en producción (ver plan). Si añades orígenes externos (scripts, imágenes, `fetch`), actualiza la CSP donde se aplique realmente.
 
 ### Tests
 
