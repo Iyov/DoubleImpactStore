@@ -22,7 +22,8 @@ npx playwright install chromium            # necesario la primera vez (si no, to
 npm run minify                             # = build = `node watcher.js --once`; regenera todos los *.min.*
 npm run watch                              # minificador en modo watch
 npm run check                              # check-siglas, check-manifest, check-brand, check-minification
-python api/update_instagram.py             # requiere INSTAGRAM_TOKEN (env o .env), pip install -r requirements.txt
+npm run test:py                            # pytest de api/ (pip install -r requirements-dev.txt)
+python api/update_instagram.py             # requiere INSTAGRAM_TOKEN (env o .env); escribe archivos solo si hay cambios
 ```
 
 No hay linter configurado. Para ver el sitio: `python -m http.server 4173` y abrir `http://127.0.0.1:4173/index.html` (las URLs limpias `/productos` funcionan en GitHub Pages, no en el server local).
@@ -61,12 +62,14 @@ Contenido externo (CSV de Sheets, captions de Instagram) se inserta con `textCon
 ### Pipeline de Instagram
 
 `.github/workflows/update-instagram.yml` (cron cada 12 h + manual) → `api/update_instagram.py`:
-1. Lee posts vía Graph API con `INSTAGRAM_TOKEN` (secret; sale con código 1 si falta o es inválido) y conserva solo los que llevan `#DoubleImpactStoreWeb`.
-2. Descarga `img/IG_{id}.jpeg` y genera `img/IG_{id}_{400,800,1200}.webp` con Pillow; borra imágenes huérfanas.
-3. Reescribe `js/instagram_posts.js` y `.min.js`, actualiza `?v=` en `index.html`, `CACHE_VERSION` y la lista de imágenes en `service-worker.js`, y escribe `commit_message.txt`.
-4. El workflow hace `git add .` y commit/push a `main` como `github-actions[bot]`.
+1. Lee posts de `graph.instagram.com` con `INSTAGRAM_TOKEN` (secret; sale con código 1 si falta o es inválido) y conserva solo imágenes/carruseles con `#DoubleImpactStoreWeb` (los videos se omiten).
+2. Descarga `img/IG_{id}.jpeg` y genera `img/IG_{id}_{400,800,1200}.webp` con Pillow; borra imágenes huérfanas. Si una descarga falla, omite ese post en la ejecución.
+3. Solo si cambia algún campo de `SIGNIFICANT_FIELDS` (título, descripción, imagen, link; **los likes no cuentan**): reescribe `js/instagram_posts.js` y `.min.js`, actualiza `?v=` de `instagram_posts.min.js` en **todos** los `*.html` y escribe `commit_message.txt`. `CACHE_VERSION` del Service Worker solo cambia si se agregan o eliminan posts.
+4. El workflow hace `git add` de esas rutas y commit/push a `main` como `github-actions[bot]`.
 
-Por eso el historial está lleno de commits "Se modificaron N post desde Instagram": son automáticos. No edites a mano `js/instagram_posts*.js`, las imágenes `img/IG_*` ni `CACHE_VERSION`/la lista de imágenes del Service Worker si el script las gestiona: se sobrescriben.
+El token nunca se imprime (`redact()`). `.github/workflows/refresh-instagram-token.yml` (días 1 y 15) lo renueva con `api/refresh_instagram_token.py` y reescribe el secret usando `GH_PAT` (PAT fine-grained con "Secrets: Read and write"); falla con un error explícito si `GH_PAT` no existe. Tests en `tests/python/` (pytest, con `monkeypatch.chdir` a un sitio temporal).
+
+Por eso el historial está lleno de commits "Se modificaron N post desde Instagram": son automáticos. No edites a mano `js/instagram_posts*.js`, las imágenes `img/IG_*` ni `CACHE_VERSION`: se sobrescriben.
 
 ### Service Worker / PWA
 
@@ -74,7 +77,7 @@ Por eso el historial está lleno de commits "Se modificaron N post desde Instagr
 
 ### Despliegue y seguridad
 
-La fuente de GitHub Pages es "Deploy from a branch" (`main`, raíz): el build automático `pages-build-deployment` publica el repo completo en cada push, incluidos los del bot de Instagram. `.github/workflows/deploy-pages.yml` es redundante con eso (doble despliegue; ver plan, fase 2). "Enforce HTTPS" está desactivado. **GitHub Pages ignora `.htaccess`**: la CSP, las cabeceras de seguridad, HSTS y los rewrites de `.htaccess` no se aplican en producción (ver plan). Si añades orígenes externos (scripts, imágenes, `fetch`), actualiza la CSP donde se aplique realmente.
+La fuente de GitHub Pages es "Deploy from a branch" (`main`, raíz): el build automático `pages-build-deployment` publica el repo completo en cada push, incluidos los del bot de Instagram. No hay workflow de deploy propio (se eliminó `deploy-pages.yml` por duplicar el despliegue). "Enforce HTTPS" está desactivado. **GitHub Pages ignora `.htaccess`**: la CSP, las cabeceras de seguridad, HSTS y los rewrites de `.htaccess` no se aplican en producción (ver plan). Si añades orígenes externos (scripts, imágenes, `fetch`), actualiza la CSP donde se aplique realmente.
 
 ### Tests
 
@@ -84,7 +87,8 @@ La fuente de GitHub Pages es "Deploy from a branch" (`main`, raíz): el build au
 
 ## Configuración externa
 
-- Secret de GitHub Actions `INSTAGRAM_TOKEN` (token de larga duración de la Graph API; expira a los 60 días).
+- Secret de GitHub Actions `INSTAGRAM_TOKEN` (token `IGAA…` de la API de Instagram con inicio de sesión de Instagram; dura 60 días, lo renueva el workflow).
+- Secret `GH_PAT`: PAT fine-grained del dueño con "Secrets: Read and write" sobre este repo, para que el workflow de renovación pueda reescribir `INSTAGRAM_TOKEN`.
 - Local: `.env` con `INSTAGRAM_TOKEN=...` (gitignored; leído con python-dotenv).
 - `js/modules/analytics.js` → `cloudflareToken` vacío hasta que se configure Cloudflare Web Analytics.
 - `js/social.js` → URLs de redes; `url` vacía oculta el botón.

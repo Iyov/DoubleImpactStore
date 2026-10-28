@@ -1,0 +1,50 @@
+name: Renovar token de Instagram
+
+# El token de Instagram dura 60 días. Renovarlo cada dos semanas lo mantiene
+# vigente indefinidamente mientras este workflow no falle.
+on:
+  schedule:
+    - cron: '0 9 1,15 * *' # Días 1 y 15 de cada mes, 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+    # GITHUB_TOKEN no puede escribir secrets: se necesita un PAT fine-grained
+    # con permiso "Secrets: Read and write" sobre este repositorio.
+    - name: Verificar secret GH_PAT
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+      run: |
+        if [ -z "$GH_PAT" ]; then
+          echo "::error::Falta el secret GH_PAT (PAT fine-grained con permiso 'Secrets: Read and write' sobre este repositorio). Sin él no se puede guardar el token renovado."
+          exit 1
+        fi
+
+    - name: Checkout del código
+      uses: actions/checkout@v5
+
+    - name: Configurar Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Instalar dependencias
+      run: pip install -r requirements.txt
+
+    - name: Renovar token
+      env:
+        INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+      run: python api/refresh_instagram_token.py "$RUNNER_TEMP/instagram_token"
+
+    - name: Guardar token renovado en el secret INSTAGRAM_TOKEN
+      env:
+        GH_TOKEN: ${{ secrets.GH_PAT }}
+      run: |
+        gh secret set INSTAGRAM_TOKEN --repo "$GITHUB_REPOSITORY" < "$RUNNER_TEMP/instagram_token"
+        rm -f "$RUNNER_TEMP/instagram_token"

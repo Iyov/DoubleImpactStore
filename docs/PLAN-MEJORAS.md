@@ -51,20 +51,22 @@ Resultado de la auditoría del 2026-10-28. El sitio cumple casi toda la especifi
 - `instagram.js` ponía como `src` de fallback `img/IG_<id>.webp`, archivo que no existe (solo hay `.jpeg` y `_400/_800/_1200.webp`), y el `<img>` repetía el `srcset` WebP, anulando el fallback para navegadores sin WebP. Ahora el `<img>` usa la imagen original (`post.image`) y, si falla, se elimina el `<source>` antes de mostrar el placeholder (con `<source>` presente el navegador volvía a elegir el WebP roto).
 - Nuevo E2E que verifica que el `src` y todas las variantes del `srcset` de Instagram responden 200.
 
-## Fase 2 — Pipeline de Instagram confiable
+## Fase 2 — Pipeline de Instagram confiable ✅ completada
 
 **Issues:** 2, 3, 4, 5, 16
 
-1. **Despliegue duplicado (2):** la fuente de Pages es "Deploy from a branch", así que `deploy-pages.yml` es redundante. Opción elegida en coordinación con la fase 5: cambiar la fuente a "GitHub Actions" (necesario para no publicar `AGENTS*.md`, `.kiro/`, `tests/`), y entonces hacer que `deploy-pages.yml` se dispare también con `workflow_run` al terminar `Actualizar Instagram Posts` (los pushes con `GITHUB_TOKEN` no activan otros workflows). Hasta ese cambio, no tocar la fuente.
-2. **Ignorar likes (3):** quitar `likes` de `posts_have_changed` y `count_changes` en `api/update_instagram.py`. Si se quiere mostrar likes actualizados, actualizarlos solo cuando ya hay otro cambio.
-3. **No invalidar la PWA por datos (3):** subir `CACHE_VERSION` solo cuando cambian assets estáticos. Para datos de Instagram, servir `instagram_posts` con estrategia stale-while-revalidate en el Service Worker en lugar de cache-first + versión global.
-4. **Renovar token (4):** primero, el dueño genera un token nuevo en Meta (Instagram API with Instagram Login → token de larga duración) y se carga con `gh secret set INSTAGRAM_TOKEN`. Después, añadir un paso que llame a `GET https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=…` y actualice el secret con `gh secret set INSTAGRAM_TOKEN` (requiere un PAT con permiso de secrets guardado como `GH_PAT`, documentar). Como mínimo, programar un workflow mensual que falle con mensaje claro si el token vence en <10 días.
-5. **Versionado en todas las páginas (5):** la regex de `update_instagram.py` debe recorrer `index.html`, `productos.html` y `404.html` (o todo `*.html`).
-6. **Logs sin token (16):** no imprimir `str(exc)` de `requests` crudo; imprimir solo tipo de error y código HTTP.
-7. Reemplazar `git add .` por rutas explícitas (`js/instagram_posts*.js img/ index.html productos.html 404.html service-worker*.js`).
-8. Tests: añadir `tests/python/test_update_instagram.py` (pytest) para `posts_have_changed`, `count_changes` y la actualización de versiones con fixtures.
+1. **Despliegue duplicado (2):** eliminado `deploy-pages.yml`; Pages sigue publicando desde la rama `main`, también con los commits del bot. Cuando la fase 5 cambie la fuente a "GitHub Actions", el nuevo workflow de deploy debe dispararse además con `workflow_run` al terminar `Actualizar Instagram Posts` (los pushes con `GITHUB_TOKEN` no activan otros workflows).
+2. **Ignorar likes (3):** `SIGNIFICANT_FIELDS = (title, description, image, link)`; `posts_have_changed` y `calculate_changes` comparten `post_differs()`. Los likes se refrescan cuando hay otro cambio.
+3. **No invalidar la PWA por datos (3):** `CACHE_VERSION` solo cambia si se agregan o eliminan posts. Los datos se propagan por el `?v=` de `instagram_posts.min.js` (el Service Worker cachea por URL completa). Se eliminó el código que reescribía una lista `INSTAGRAM_IMAGES` inexistente en `service-worker.js`; el precache de imágenes queda para la fase 4.
+4. **Renovar token (4):** token nuevo cargado el 2026-10-28. `api/refresh_instagram_token.py` + `.github/workflows/refresh-instagram-token.yml` (días 1 y 15) renuevan el token y reescriben el secret con `GH_PAT`; si falta `GH_PAT`, el workflow falla con un error explícito (GitHub avisa por correo).
+5. **Versionado en todas las páginas (5):** `update_html_versions()` recorre todos los `*.html`; se sincronizaron las 4 páginas desfasadas.
+6. **Logs sin token (16):** `redact()` en todos los mensajes de error; el token va en `params` de `requests`; en Actions el token renovado se enmascara con `::add-mask::`.
+7. `git add` con rutas explícitas; concurrencia en el workflow; `actions/checkout@v5` y `actions/setup-python@v6` (Node 24) con caché de pip.
+8. Tests: `tests/python/` (16 tests pytest, `npm run test:py`, dependencias en `requirements-dev.txt`). Además: las descargas de imágenes tienen timeout y, si fallan, el post se omite en vez de publicarse con una imagen rota.
 
-**Criterio de aceptación:** un post nuevo con `#DoubleImpactStoreWeb` aparece en producción sin intervención manual; cambios de likes no generan commits; las tres páginas comparten `?v=`.
+**Criterio de aceptación:** un post nuevo con `#DoubleImpactStoreWeb` aparece en producción sin intervención manual; cambios de likes no generan commits; todas las páginas comparten `?v=`.
+
+**Resultado:** prueba real contra la API con solo cambios de likes → "No hay cambios significativos", sin escribir archivos. Pendiente del dueño: crear el secret `GH_PAT` para que la renovación automática funcione.
 
 ## Fase 3 — Seguridad efectiva en producción
 
@@ -138,8 +140,8 @@ Pasos (A, y B o C si el dueño lo aprueba):
 
 | Elemento | Dónde | Necesario para |
 |---|---|---|
-| `INSTAGRAM_TOKEN` | Secret de Actions | **Urgente:** vencido el 2026-10-18; generar uno nuevo |
-| `GH_PAT` con permiso de secrets | Secret de Actions | Renovación automática del token (Fase 2.4) |
+| `INSTAGRAM_TOKEN` | Secret de Actions | Renovado el 2026-10-28 (vence ~2026-12-27 si no corre la renovación automática) |
+| `GH_PAT`: PAT fine-grained, solo este repo, permiso "Secrets: Read and write" | Secret de Actions | **Pendiente.** Renovación automática del token (Fase 2.4) |
 | Decisión de hosting/Cloudflare proxy | — | Cabeceras completas (Fase 3.4) |
 | Token de Cloudflare Web Analytics | `js/modules/analytics.js` → `cloudflareToken` | Issue 18 |
 | Fuente de Pages: hoy "Deploy from a branch"; pasar a "GitHub Actions" | Settings → Pages | Fases 2.1 y 5.2 |

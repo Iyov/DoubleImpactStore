@@ -5,6 +5,11 @@ on:
     - cron: '0 */12 * * *' # Se ejecuta cada 12 horas
   workflow_dispatch: # Permite ejecución manual desde GitHub
 
+# Evita que dos ejecuciones se pisen al hacer push
+concurrency:
+  group: instagram-update
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -13,19 +18,16 @@ jobs:
 
     steps:
     - name: Checkout del código
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+      uses: actions/checkout@v5
 
     - name: Configurar Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.11'
+        cache: 'pip'
 
     - name: Instalar dependencias
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      run: pip install -r requirements.txt
 
     - name: Ejecutar script de actualización
       env:
@@ -36,16 +38,15 @@ jobs:
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add .
+        # Solo los archivos que genera el script (-A incluye imágenes eliminadas)
+        git add -A js/instagram_posts.js js/instagram_posts.min.js img/ ./*.html service-worker.js
 
-        # Verificar si hay cambios staged
         if git diff --staged --quiet; then
           echo "No hay cambios para commitear"
         else
           # Leer el mensaje de commit generado por el script
-          if [ -f commit_message.txt ] && [ -s commit_message.txt ]; then
-            COMMIT_MSG=$(cat commit_message.txt)
-            git commit -m "$COMMIT_MSG"
+          if [ -s commit_message.txt ]; then
+            git commit -m "$(cat commit_message.txt)"
           else
             git commit -m "chore: actualizar posts de Instagram [bot]"
           fi
