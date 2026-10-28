@@ -8,6 +8,10 @@ const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT = path.join(ROOT, '..');
 const EXCLUDE_DIRS = new Set(['node_modules', '.git', 'coverage', 'test-results', 'playwright-report', '.kiro']);
 const EXCLUDE_FILES = new Set(['package-lock.json', 'check-brand.js']);
+// Captions reales de Instagram (generados por api/update_instagram.py): pueden
+// contener hashtags históricos de la tienda de origen, así que se ignoran.
+const CAPTION_FILES = new Set(['instagram_posts.js', 'instagram_posts.min.js']);
+const CAPTION_FIELD = /"?description"?\s*:\s*"(?:[^"\\]|\\.)*"/g;
 const PATTERNS = [
   /RopavejeroRetro/i,
   /Ropavejero\s+Retro/i,
@@ -33,7 +37,8 @@ const files = walk(PROJECT).filter((f) => /\.(html|js|css|json|xml|txt|py|yml|ya
 const hits = [];
 
 for (const file of files) {
-  const content = fs.readFileSync(file, 'utf8');
+  let content = fs.readFileSync(file, 'utf8');
+  if (CAPTION_FILES.has(path.basename(file))) content = content.replace(CAPTION_FIELD, '');
   for (const pattern of PATTERNS) {
     const match = content.match(pattern);
     if (match) {

@@ -65,8 +65,25 @@ test.describe('Página principal', () => {
   test('la sección de Instagram renderiza posts con filtros', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('.ig-card').first()).toBeVisible();
-    await expect(page.locator('.ig-card img')).toHaveAttribute('loading', 'lazy');
+    for (const img of await page.locator('.ig-card img').all()) {
+      await expect(img).toHaveAttribute('loading', 'lazy');
+    }
     await expect(page.locator('.ig-filter-btn').first()).toBeVisible();
+  });
+
+  test('las imágenes de Instagram (fallback y variantes WebP) existen', async ({ page, request }) => {
+    await page.goto('/');
+    await expect(page.locator('.ig-card').first()).toBeVisible();
+    const urls = await page.locator('.ig-card picture').evaluateAll((pictures) =>
+      pictures.flatMap((p) => [
+        p.querySelector('img').getAttribute('src'),
+        ...p.querySelector('source').srcset.split(',').map((c) => c.trim().split(' ')[0])
+      ])
+    );
+    expect(urls.length).toBeGreaterThan(0);
+    for (const url of new Set(urls)) {
+      expect((await request.get(url)).status(), url).toBe(200);
+    }
   });
 
   test('navegación móvil con toggle', async ({ page }) => {

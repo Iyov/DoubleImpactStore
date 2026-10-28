@@ -106,18 +106,22 @@ function buildPostCard(post, lang, aliases) {
   source.srcset = webpSrcset;
   source.sizes = '(max-width: 768px) 100vw, 360px';
 
+  // Fallback sin WebP: la imagen original descargada por update_instagram.py
   const img = document.createElement('img');
-  img.src = `${base}.webp`;
-  img.srcset = webpSrcset;
-  img.sizes = '(max-width: 768px) 100vw, 360px';
+  img.src = post.image || PLACEHOLDER_IMAGE;
   img.alt = post.title || 'Post de Instagram';
   img.loading = 'lazy';
   img.width = 800;
   img.height = 800;
-  img.addEventListener('error', () => {
-    img.removeAttribute('srcset');
-    img.src = PLACEHOLDER_IMAGE;
-  });
+  img.addEventListener(
+    'error',
+    () => {
+      // Con <source> presente el navegador volvería a elegir el WebP roto
+      source.remove();
+      img.src = PLACEHOLDER_IMAGE;
+    },
+    { once: true }
+  );
   picture.append(source, img);
 
   const body = document.createElement('div');

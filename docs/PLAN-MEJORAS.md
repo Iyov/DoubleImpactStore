@@ -36,15 +36,19 @@ Resultado de la auditoría del 2026-10-28. El sitio cumple casi toda la especifi
 
 ---
 
-## Fase 1 — Arreglos rápidos (≤1 h)
+## Fase 1 — Arreglos rápidos (≤1 h) ✅ completada
 
 **Issues:** 6, 15
 
-1. `scripts/check-brand.js`: excluir `js/instagram_posts.js` y `js/instagram_posts.min.js` (contenido generado desde captions reales). Alternativa más estricta: excluir solo el campo `description` de los posts.
+1. `scripts/check-brand.js`: ignorar solo el campo `description` (captions reales) de `js/instagram_posts.js` / `.min.js`; el resto de esos archivos se sigue verificando.
 2. Crear `.env.example` con `INSTAGRAM_TOKEN=` (sin valor).
 3. `npx playwright install chromium` y ejecutar `npm run test:e2e` para conocer el estado real de los E2E; corregir lo que falle antes de seguir.
 
 **Criterio de aceptación:** `npm run check` y `npm run test:e2e` en verde.
+
+**Resultado:** `npm run check` OK, 42/42 unitarios, 18/18 E2E. Al ejecutar los E2E apareció un bug extra, corregido en esta fase:
+- `instagram.js` ponía como `src` de fallback `img/IG_<id>.webp`, archivo que no existe (solo hay `.jpeg` y `_400/_800/_1200.webp`), y el `<img>` repetía el `srcset` WebP, anulando el fallback para navegadores sin WebP. Ahora el `<img>` usa la imagen original (`post.image`) y, si falla, se elimina el `<source>` antes de mostrar el placeholder (con `<source>` presente el navegador volvía a elegir el WebP roto).
+- Nuevo E2E que verifica que el `src` y todas las variantes del `srcset` de Instagram responden 200.
 
 ## Fase 2 — Pipeline de Instagram confiable
 
@@ -92,6 +96,7 @@ Pasos (A, y B o C si el dueño lo aprueba):
 
 1. **Bundle único (7):** reemplazar la minificación archivo por archivo de JS por un bundle con `esbuild` (`js/index.js` → `js/index.min.js`, ES module, minificado, sourcemap opcional). Mantener `watcher.js` como entrada (`--once`/watch) para no romper los scripts npm. Eliminar `js/modules/*.min.js` del repo. Ajustar `scripts/check-minification.js` al nuevo artefacto.
    - Alternativa sin dependencia nueva: que `watcher.js` reescriba los imports a `.min.js?v=<hash>` al minificar `index.js`.
+   - `watcher.js` también reformatea `js/instagram_posts.min.js` (lo genera `update_instagram.py` con otro formato) y regenera `service-worker.min.js`, que ninguna página usa: excluir ambos de `watcher.js` y borrar `service-worker.min.js`.
 2. **Cache busting por hash de contenido:** generar `?v=` desde el hash del archivo en `watcher.js` y reescribirlo en los HTML, en vez de fechas manuales.
 3. **Service Worker (8):**
    - Precachear el bundle (y cualquier módulo que siga cargándose).
