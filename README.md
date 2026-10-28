@@ -6,7 +6,9 @@ La especificación funcional y técnica vive en `.kiro/specs/double-impact-store
 
 ## Estado de implementación
 
-Las tareas 1–32 de `tasks.md` están completadas y verificadas. Lo más reciente:
+Las tareas 1–32 de `tasks.md` están marcadas como completadas. La auditoría del 2026-10-28 detectó problemas pendientes (cabeceras de seguridad no aplicadas en GitHub Pages, despliegue de posts de Instagram, invalidación de caché por likes, renovación del token, entre otros); el detalle y el plan de resolución están en [docs/PLAN-MEJORAS.md](docs/PLAN-MEJORAS.md).
+
+Lo más reciente:
 
 - **Menú superior solo-íconos** — el texto de marca desaparece del header; en desktop solo se muestran íconos con tooltip (`attr(aria-label)`) y en móvil (≤1024px) ícono + texto vía menú hamburguesa. Íconos a 1.05rem, del mismo tamaño que los `.control-btn`.
 - **Navegación activa por sección** — el ítem del menú se selecciona según la ruta **y el hash** (`index.html#nosotros` → `/nosotros`), al hacer clic en un enlace y al navegar hacia atrás/adelante (`hashchange`).
@@ -21,9 +23,9 @@ Las tareas 1–32 de `tasks.md` están completadas y verificadas. Lo más recien
 ## Comandos
 
 ```bash
-npm test           # Vitest + fast-check (41 tests unitarios / property-based)
+npm test           # Vitest + fast-check (42 tests unitarios / property-based)
 npm run test:watch # Vitest en modo watch
-npm run test:e2e   # Playwright (17 E2E)
+npm run test:e2e   # Playwright (17 E2E; la primera vez: npx playwright install chromium)
 npm run minify     # minificación única (Terser + cssnano -> *.min.js / *.min.css)
 npm run build      # alias de minify
 npm run watch      # minificador en modo watch
@@ -32,7 +34,7 @@ npm run check      # smoke tests: siglas, manifest, marca, minificación
 
 Para servir el sitio localmente (fuera del build), usa cualquier servidor estático, p. ej. `python -m http.server 4173` o `npx serve`.
 
-Los navegadores resuelven las URLs limpias (`/productos`, `/security-policy`, `/security-acknowledgments`, `/404`) vía `.htaccess` en producción; en el servidor local de pruebas usa los archivos `*.html` directos.
+En producción (GitHub Pages) las URLs limpias (`/productos`, `/security-policy`, `/security-acknowledgments`) las resuelve GitHub Pages sirviendo el `.html` correspondiente. GitHub Pages **ignora `.htaccess`**: sus rewrites y cabeceras de seguridad solo aplicarían en un hosting Apache (ver [docs/PLAN-MEJORAS.md](docs/PLAN-MEJORAS.md), fase 3). En el servidor local de pruebas usa los archivos `*.html` directos.
 
 ## Configuración que debe completar el administrador
 
@@ -51,9 +53,9 @@ El sitio funciona sin estas configuraciones (los componentes se ocultan o quedan
 4. **Instagram (GitHub Actions + local)** — el token de la Graph API de Instagram se lee **solo** desde la variable de entorno `INSTAGRAM_TOKEN` (nunca se versiona en el repositorio). El workflow `update-instagram.yml` corre cada 12 h (o manualmente con *Run workflow*) y busca el hashtag `#DoubleImpactStoreWeb`. `api/update_instagram.py` genera las imágenes WebP responsivas (400/800/1200) y actualiza `js/instagram_posts.min.js`, el cache busting (`?v=`) y la versión del Service Worker.
 
    - **En GitHub (producción):** configura el token como *Secret* del repositorio (Settings → Secrets and variables → Actions → *New repository secret* → nombre `INSTAGRAM_TOKEN`). Sin este secret el workflow falla a propósito con código de salida 1 y el mensaje *"No se encontró INSTAGRAM_TOKEN"*.
-   - **Local (desarrollo):** copia `.env.example` a `.env` y completa el valor:
+   - **Local (desarrollo):** crea un archivo `.env` con `INSTAGRAM_TOKEN=<tu token>` (`.env.example` aún no existe; ver plan, fase 1):
      ```bash
-     cp .env.example .env   # luego edita .env y pega tu token
+     echo "INSTAGRAM_TOKEN=" > .env   # luego edita .env y pega tu token
      python api/update_instagram.py
      ```
      `.env` está en `.gitignore` y nunca debe subirse al repositorio.
