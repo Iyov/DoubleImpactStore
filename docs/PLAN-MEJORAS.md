@@ -33,7 +33,7 @@ Resultado de la auditoría del 2026-10-28. El sitio cumple casi toda la especifi
 | 15 | `.env.example` referenciado en el README pero no existe | Baja | 1 |
 | 16 | Excepciones de `requests` impresas con la URL completa (incluye `access_token`); GitHub enmascara secrets, pero conviene no depender de eso | Baja | 2 |
 | 17 | `AGENTS v0.2.md` y `AGENTS v0.3.md` obsoletos en la raíz | Baja | 5 |
-| 18 | `cloudflareToken` vacío en `analytics.js` | Config | — |
+| 18 | ~~`cloudflareToken` vacío en `analytics.js`~~ **No aplica:** Cloudflare (proxy) ya inyecta automáticamente el beacon de Web Analytics y funciona (verificado en producción). Dejar `cloudflareToken` vacío para no contar doble | — | — |
 | 19 | Cloudflare (ya delante del dominio) inyecta un script inline de "JavaScript Detections" que la CSP bloquea | Baja | 3 |
 | 20 | **Analytics no mide nada:** el contenedor `GTM-NB5CQ3VR` está vacío (`"tags":[]`) y `analytics.js` no carga GA4 cuando GTM está presente | Alta | Config |
 
@@ -142,7 +142,6 @@ Pendiente en el panel de Cloudflare (lo hace el dueño):
 | `GH_PAT`: PAT fine-grained, solo este repo, permiso "Secrets: Read and write" | Secret de Actions | Configurado el 2026-10-28. Renovación automática del token (Fase 2.4) |
 | Ajustes de Cloudflare: Always Use HTTPS, HSTS, Transform Rule de cabeceras, JavaScript Detections off | Panel de Cloudflare | Fase 3 (pendientes) |
 | Etiqueta "Google tag" con `G-CHJJRHE1YK`, activador All Pages, y publicar | Panel de GTM (`GTM-NB5CQ3VR`) | Issue 20 |
-| Token de Cloudflare Web Analytics | `js/modules/analytics.js` → `cloudflareToken` | Issue 18 |
 | Fuente de Pages: hoy "Deploy from a branch"; pasar a "GitHub Actions" | Settings → Pages | Fases 2.1 y 5.2 |
 
 ## Orden recomendado

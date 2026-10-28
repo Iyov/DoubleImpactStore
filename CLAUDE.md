@@ -97,5 +97,5 @@ La fuente de GitHub Pages es "Deploy from a branch" (`main`, raíz): el build au
 - Secret de GitHub Actions `INSTAGRAM_TOKEN` (token `IGAA…` de la API de Instagram con inicio de sesión de Instagram; dura 60 días, lo renueva el workflow).
 - Secret `GH_PAT`: PAT fine-grained del dueño con "Secrets: Read and write" sobre este repo, para que el workflow de renovación pueda reescribir `INSTAGRAM_TOKEN`.
 - Local: `.env` con `INSTAGRAM_TOKEN=...` (gitignored; leído con python-dotenv).
-- `js/modules/analytics.js` → `cloudflareToken` vacío hasta que se configure Cloudflare Web Analytics.
+- `js/modules/analytics.js` → `cloudflareToken` debe quedar vacío: Cloudflare (proxy) ya inyecta su beacon de Web Analytics automáticamente.
 - `js/social.js` → URLs de redes; `url` vacía oculta el botón.
