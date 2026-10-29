@@ -139,6 +139,7 @@ Pendiente (decisión del dueño):
 5. **Bugs encontrados en el refactor:**
    - Instagram y la efeméride **no se re-renderizaban al cambiar de idioma** (`rerenderInstagram` existía pero nadie la llamaba): ahora ambos escuchan `dis:langchange`.
    - La efeméride **nunca se mostraba en inglés**: el JSON usa claves `ES`/`EN` y el código buscaba `efemeride['en']`. Las 366 traducciones existían pero no se usaban.
+   - **Acentos rotos en las efemérides:** 365 de 366 entradas (850 textos) tenían los caracteres doblemente escapados en `js/efemerides.json` (se veía "Japón" en vez de "Japón"). Se decodificaron y un test unitario impide que vuelva a pasar.
 6. Tests: unitario de regresión de la efeméride en inglés, E2E de cambio de idioma en Instagram + efeméride, pytest adaptados al JSON. `design.md`, `CLAUDE.md` y `README.md` actualizados.
 
 **Criterio de aceptación:** `npm test` y E2E en verde; `index.js` ≤20 líneas; sin variables globales propias en `window`. Cumplido: 43 unitarios, 44 E2E, 16 pytest.

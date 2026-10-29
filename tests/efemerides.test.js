@@ -49,6 +49,16 @@ describe('efemerides.js', () => {
     });
   });
 
+  it('el archivo real no tiene secuencias \\uXXXX literales (acentos doblemente escapados)', () => {
+    const raw = fs.readFileSync(path.join(ROOT, 'js', 'efemerides.json'), 'utf8');
+    const data = JSON.parse(raw);
+    const texts = data.efemerides.flatMap((entry) =>
+      ['ES', 'EN'].flatMap((lang) => ['title', 'text', 'det'].map((key) => (entry[lang] || {})[key] || ''))
+    );
+    const broken = texts.filter((text) => /\\u[0-9a-fA-F]{4}/.test(text));
+    expect(broken).toEqual([]);
+  });
+
   it('renderEfemeride usa el idioma pedido (claves ES/EN del JSON con lang en minúscula)', () => {
     document.body.innerHTML = '<section><div id="efemerides-content"></div></section>';
     const container = document.getElementById('efemerides-content');
