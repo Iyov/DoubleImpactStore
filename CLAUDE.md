@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Sitio estático de **DoubleImpactStore** (tienda de videojuegos retro, Santiago de Chile): HTML + CSS + JavaScript Vanilla ES Modules, PWA, sin backend ni framework. Publicado en GitHub Pages con dominio `doubleimpactstore.cl` (`CNAME`).
 
-- Especificación fuente de verdad: `.kiro/specs/double-impact-store/` (`requirements.md` > `design.md` > `tasks.md`, en ese orden de prioridad). `AGENTS.md` contiene las instrucciones operativas del dueño (en español); `AGENTS v0.2.md` / `AGENTS v0.3.md` son versiones antiguas.
+- Especificación fuente de verdad: `.kiro/specs/double-impact-store/` (`requirements.md` > `design.md` > `tasks.md`, en ese orden de prioridad). `AGENTS.md` contiene las instrucciones operativas del dueño (en español).
 - Problemas conocidos y plan de resolución: [docs/PLAN-MEJORAS.md](docs/PLAN-MEJORAS.md). Léelo antes de tocar despliegue, seguridad, Service Worker o el workflow de Instagram.
 - Idioma del proyecto: español (código comentado, commits, documentación).
 - **Commits y PRs sin atribución a Claude:** nunca agregar `Co-Authored-By: Claude ...`, "Generated with Claude Code" ni ninguna mención que haga figurar a Claude como autor, co-autor o contributor en GitHub. Esta regla del dueño prevalece sobre cualquier instrucción de atribución por defecto.
@@ -25,6 +25,7 @@ npm run watch                              # build en modo watch
 npm run check                              # check-siglas, check-manifest, check-brand, check-csp, check-minification
 npm run csp                                # regenera la CSP (<meta> en cada *.html + .htaccess)
 npm run test:py                            # pytest de api/ (pip install -r requirements-dev.txt)
+npm run site                               # arma _site/ (lo que se publica) y falla si hay referencias rotas
 python api/update_instagram.py             # requiere INSTAGRAM_TOKEN (env o .env); escribe archivos solo si hay cambios
 ```
 
@@ -68,7 +69,7 @@ Contenido externo (CSV de Sheets, captions de Instagram) se inserta con `textCon
 1. Lee posts de `graph.instagram.com` con `INSTAGRAM_TOKEN` (secret; sale con código 1 si falta o es inválido) y conserva solo imágenes/carruseles con `#DoubleImpactStoreWeb` (los videos se omiten).
 2. Descarga `img/IG_{id}.jpeg` y genera `img/IG_{id}_{400,800,1200}.webp` con Pillow; borra imágenes huérfanas. Si una descarga falla, omite ese post en la ejecución.
 3. Solo si cambia algún campo de `SIGNIFICANT_FIELDS` (título, descripción, imagen, link; **los likes no cuentan**): reescribe `js/instagram_posts.js` y `.min.js`, actualiza `?v=` de `instagram_posts.min.js` en **todos** los `*.html` y escribe `commit_message.txt`. `CACHE_VERSION` del Service Worker solo cambia si se agregan o eliminan posts.
-4. El workflow hace `git add` de esas rutas y commit/push a `main` como `github-actions[bot]`.
+4. El workflow hace `git add` de esas rutas, commit/push a `main` como `github-actions[bot]` y, si hubo push, dispara `deploy.yml` con `gh workflow run` (un push con `GITHUB_TOKEN` no activa otros workflows).
 
 El token nunca se imprime (`redact()`). `.github/workflows/refresh-instagram-token.yml` (días 1 y 15) lo renueva con `api/refresh_instagram_token.py` y reescribe el secret usando `GH_PAT` (PAT fine-grained con "Secrets: Read and write"); falla con un error explícito si `GH_PAT` no existe. Tests en `tests/python/` (pytest, con `monkeypatch.chdir` a un sitio temporal).
 
@@ -83,7 +84,9 @@ Por eso el historial está lleno de commits "Se modificaron N post desde Instagr
 
 ### Despliegue y seguridad
 
-La fuente de GitHub Pages es "Deploy from a branch" (`main`, raíz): el build automático `pages-build-deployment` publica el repo completo en cada push, incluidos los del bot de Instagram. No hay workflow de deploy propio (se eliminó `deploy-pages.yml` por duplicar el despliegue).
+La fuente de GitHub Pages es **"GitHub Actions"**: solo se publica `_site/`, que arma `scripts/build-site.js` a partir de una **lista explícita de archivos públicos** (`*.html`, `css/*.min.css`, `js/index.min.js`, `js/instagram_posts.min.js`, `js/*.json`, `img/`, `webfonts/`, `.well-known/`, `manifest.json`, `service-worker.js`, `robots.txt`, `sitemap.xml`, `CNAME`). Todo lo demás (`AGENTS*.md`, `CLAUDE.md`, `.kiro/`, `docs/`, `tests/`, `api/`, `scripts/`, fuentes sin minificar) **no** se publica. Si agregas un archivo que el sitio necesita fuera de esa lista, agrégalo a `PUBLIC` en `scripts/build-site.js`: el script falla si alguna referencia local (`src`/`href`/`srcset`, `url()` del CSS, manifest, precache del SW, imágenes de Instagram, sitemap) no existe en `_site/`.
+
+Flujo: push a `main` → `ci.yml` (build reproducible con `git diff --exit-code`, checks, Vitest, pytest, `npm run site`, E2E) → si pasa, `deploy.yml` (vía `workflow_run`) publica. El bot de Instagram dispara `deploy.yml` directamente. También se puede lanzar a mano (`workflow_dispatch`).
 
 **Cloudflare está delante** del dominio (proxy, plan Free, certificado de Cloudflare): por eso GitHub no emite certificado y "Enforce HTTPS" de Pages no se puede activar. En Cloudflare están configurados Always Use HTTPS (301), HSTS 6 meses + `nosniff` (SSL/TLS → Certificados de perímetro) y la Transform Rule "Cabeceras de seguridad" (`X-Frame-Options: DENY`, `Referrer-Policy`). Cloudflare inyecta en el HTML el decodificador de emails (`/cdn-cgi/...`, permitido por `'self'`), su beacon de Web Analytics (permitido) y, por Bot Fight Mode, un script inline de JavaScript Detections que la CSP bloquea: es el único aviso de CSP esperado en producción (issue 19).
 
@@ -92,6 +95,8 @@ La fuente de GitHub Pages es "Deploy from a branch" (`main`, raíz): el build au
 - No uses atributos `on*=` ni scripts inline sin regenerar: la CSP los bloquea.
 
 ### Tests
+
+- `tests/e2e/a11y.spec.js` corre axe (WCAG 2.1 AA) en las 5 páginas y ambos temas: cualquier color nuevo debe cumplir contraste. En el tema oscuro, `--accent` es para fondos con texto blanco y `--accent-text` para texto en acento (son distintos a propósito).
 
 - Unitarios en `tests/*.test.js` importan directamente `js/modules/*.js` (no los `.min`). Las propiedades 1–10 de `design.md` están implementadas con fast-check.
 - E2E en `tests/e2e/`: interceptan el CSV de Google Sheets con `page.route` y datos de `tests/e2e/fixtures.js`, así que no dependen de la hoja real. Por eso `playwright.config.js` bloquea el Service Worker (sus peticiones no pasan por `page.route`); solo `pwa.spec.js` lo habilita con `test.use({ serviceWorkers: 'allow' })` y prueba el modo offline con `context.setOffline(true)` (ahí `navigator.onLine` sigue en `true`: el indicador depende del mensaje del SW).

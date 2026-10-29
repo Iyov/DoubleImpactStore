@@ -114,17 +114,19 @@ Pendiente (decisión del dueño):
 
 **Verificado en producción (2026-10-29):** un solo JS por página (`index.min.js?v=<hash>`), sin errores de JS. El Service Worker nuevo tarda en activarse por el issue 21 (Cloudflare sirve el anterior hasta 4 h); mientras tanto el anterior sigue funcionando con el HTML nuevo.
 
-## Fase 5 — Calidad y repositorio
+## Fase 5 — Calidad y repositorio ✅ completada
 
 **Issues:** 12, 13, 14, 17
 
-1. **CI (13):** `.github/workflows/ci.yml` en `push`/`pull_request`: `npm ci`, `npm test`, `npm run check`, `npx playwright install --with-deps chromium`, `npm run test:e2e`, y verificar que `npm run minify` no deja diff (`git diff --exit-code`).
-2. **Artefacto de deploy (12):** en `deploy-pages.yml`, copiar a `_site/` solo lo público (`*.html`, `css/`, `js/`, `img/`, `webfonts/`, `manifest.json`, `service-worker*.js`, `robots.txt`, `sitemap.xml`, `CNAME`, `.well-known/`) y subir `_site`. Hacer que el deploy dependa de que CI pase.
-3. **E2E faltantes (14):** `@axe-core/playwright` en index/productos/404 (cero violaciones serias), offline/PWA, menú móvil con teclado y Escape, tooltips de siglas, idioma persistido en `/productos`, 404 en EN.
-4. Borrar `AGENTS v0.2.md` y `AGENTS v0.3.md` (17), con confirmación del dueño.
-5. Opcional: ESLint + Prettier con `npm run lint` (AGENTS.md §29 lo menciona "si corresponde").
+1. **CI (13):** `.github/workflows/ci.yml` en push a `main`, PR y manual: `npm ci`, `npm run build` + `git diff --exit-code` (el build commiteado debe estar al día), `npm run check`, Vitest, pytest, `npm run site`, Chromium + E2E; sube el reporte de Playwright si falla. Primera ejecución en GitHub: todo en verde. `watcher.js` normaliza CRLF→LF antes de calcular hashes para que el build sea reproducible entre Windows y Linux.
+2. **Publicar solo lo público (12):** `scripts/build-site.js` (`npm run site`) arma `_site/` con una lista explícita de archivos públicos (50 archivos) y falla si alguna referencia local no existe (también cubre la auditoría de "archivos referenciados que no existen"). `deploy.yml` publica `_site/` tras un CI exitoso en `main` (`workflow_run`), cuando el bot de Instagram sube cambios (`gh workflow run`) o a mano. La fuente de Pages pasó a **"GitHub Actions"** (2026-10-29). Verificado en producción: páginas, `/.well-known/security.txt`, sitemap, manifest y SW → 200; `AGENTS.md`, `CLAUDE.md`, `.kiro/`, `docs/`, `tests/`, `api/`, `package.json`, fuentes sin minificar → 404.
+3. **E2E faltantes (14):** `tests/e2e/a11y.spec.js` (14 tests): axe WCAG 2.1 AA en las 5 páginas × 2 temas, menú móvil con teclado (Enter/Escape y foco), siglas enfocables con traducción ES/EN, idioma persistido entre páginas, 404 en inglés. Offline/PWA ya estaba en la fase 4. Total: 43 E2E.
+   - **Violaciones reales corregidas** (encontradas por axe): contraste de botones con texto blanco sobre el acento (4,16:1 → 4,85:1, `--accent: #d62f3c` en tema oscuro), acento como texto sobre fondos oscuros (3,98:1 → ≥4,7:1, nuevo token `--accent-text`), badge "Disponible" en tema claro (3,03:1 → 4,68:1), rol de testimonios (se quitó `opacity: 0.8`: 4,2:1 → 6,8:1), barra de progreso sin nombre accesible (`aria-label` traducible).
+   - **Foco:** Escape en el menú móvil ahora devuelve el foco al botón.
+4. Borrados `AGENTS v0.2.md` y `AGENTS v0.3.md` (17), con confirmación del dueño.
+5. ESLint/Prettier: no se agregó (opcional; el código ya tiene checks y tests en CI).
 
-**Criterio de aceptación:** PRs muestran checks verdes; el sitio publicado no expone `.kiro/`, `tests/` ni `AGENTS*.md`.
+**Criterio de aceptación:** PRs muestran checks verdes; el sitio publicado no expone `.kiro/`, `tests/` ni `AGENTS*.md`. Cumplido.
 
 ## Fase 6 — Refactor de módulos
 
@@ -147,7 +149,7 @@ Pendiente (decisión del dueño):
 | `INSTAGRAM_TOKEN` | Secret de Actions | Renovado el 2026-10-28 (vence ~2026-12-27 si no corre la renovación automática) |
 | `GH_PAT`: PAT fine-grained, solo este repo, permiso "Secrets: Read and write" | Secret de Actions | Configurado el 2026-10-28. Renovación automática del token (Fase 2.4) |
 | Decidir si se apaga Bot Fight Mode para eliminar el aviso de CSP de JavaScript Detections | Panel de Cloudflare | Issue 19 (opcional) |
-| Cache Rule "Bypass cache" para `/service-worker.js` (y opcionalmente purgar caché tras cada deploy del SW) | Panel de Cloudflare → Caching → Cache Rules | Issue 21 |
+| Cache Rule para `/service-worker.js`: Caching → Cache Rules → Crear regla → "Si coincide": campo *URI Path* igual a `/service-worker.js` → *Omitir caché* (Bypass cache) → Implementar. Luego Caching → Configuración → Purgar caché → Purga personalizada → `https://doubleimpactstore.cl/service-worker.js` | Panel de Cloudflare | Issue 21 (el editor de reglas congeló Chrome al intentarlo con automatización) |
 | Fuente de Pages: hoy "Deploy from a branch"; pasar a "GitHub Actions" | Settings → Pages | Fases 2.1 y 5.2 |
 
 ## Orden recomendado

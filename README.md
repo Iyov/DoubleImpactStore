@@ -74,7 +74,7 @@ js/modules/     logger, cache, siglas, utils, ui, products, instagram, efemeride
 api/            update_instagram.py (procesador de posts)
 scripts/        check-siglas, check-manifest, check-brand, check-minification
 tests/          unitarios + property-based (Vitest + fast-check) y e2e/ (Playwright)
-.github/workflows/   update-instagram.yml
+.github/workflows/   ci.yml (tests en cada push/PR), deploy.yml (publica _site/), update-instagram.yml, refresh-instagram-token.yml
 watcher.js      build (esbuild + cssnano): bundle js/index.min.js, CSS .min y ?v= por hash
 ```
 
