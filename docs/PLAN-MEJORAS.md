@@ -36,7 +36,7 @@ Resultado de la auditoría del 2026-10-28. El sitio cumple casi toda la especifi
 | 18 | ~~`cloudflareToken` vacío en `analytics.js`~~ **No aplica:** Cloudflare (proxy) ya inyecta automáticamente el beacon de Web Analytics y funciona (verificado en producción). Dejar `cloudflareToken` vacío para no contar doble | — | — |
 | 19 | Cloudflare (ya delante del dominio) inyecta un script inline de "JavaScript Detections" que la CSP bloquea | Baja | 3 |
 | 20 | ~~Analytics no mide nada: el contenedor `GTM-NB5CQ3VR` estaba vacío~~ **Resuelto 2026-10-29:** publicada la versión 2 del contenedor con la etiqueta "GA4 - Etiqueta de Google" (`G-CHJJRHE1YK`, Initialization - All Pages). Verificado en producción: `POST /g/collect` con `tid=G-CHJJRHE1YK`, sin violaciones de CSP | Alta | — |
-| 21 | Cloudflare cachea `service-worker.js` 4 h en el borde (`cache-control: max-age=14400`, `cf-cache-status: HIT`; GitHub envía 600 s): cada cambio del Service Worker tarda hasta 4 h en llegar. Los assets con `?v=` no se ven afectados | Media | Config |
+| 21 | ~~Cloudflare cachea `service-worker.js` 4 h~~ **Diagnóstico corregido (2026-10-29), no requiere cambios:** el borde de Cloudflare respeta los 600 s de GitHub (`cf-cache-status: REVALIDATED`, `age: 0`, `expires` a 10 min). El `max-age=14400` es solo el "Browser Cache TTL" que Cloudflare envía al navegador, y los navegadores ignoran la caché HTTP para el script del Service Worker (`updateViaCache: 'imports'` por defecto). Retraso real de un SW nuevo: ≤10 min, igual que GitHub Pages sin Cloudflare | — | — |
 
 ---
 
@@ -112,7 +112,7 @@ Pendiente (decisión del dueño):
 
 **Criterio de aceptación:** primera visita + recarga offline funciona; solo un JS minificado cargado por página. Cumplido (Lighthouse PWA queda para la fase 5).
 
-**Verificado en producción (2026-10-29):** un solo JS por página (`index.min.js?v=<hash>`), sin errores de JS. El Service Worker nuevo tarda en activarse por el issue 21 (Cloudflare sirve el anterior hasta 4 h); mientras tanto el anterior sigue funcionando con el HTML nuevo.
+**Verificado en producción (2026-10-29):** un solo JS por página (`index.min.js?v=<hash>`), sin errores de JS. El Service Worker nuevo puede tardar hasta 10 min en activarse (caché de GitHub Pages/Cloudflare, ver issue 21); mientras tanto el anterior sigue funcionando con el HTML nuevo.
 
 ## Fase 5 — Calidad y repositorio ✅ completada
 
@@ -149,7 +149,6 @@ Pendiente (decisión del dueño):
 | `INSTAGRAM_TOKEN` | Secret de Actions | Renovado el 2026-10-28 (vence ~2026-12-27 si no corre la renovación automática) |
 | `GH_PAT`: PAT fine-grained, solo este repo, permiso "Secrets: Read and write" | Secret de Actions | Configurado el 2026-10-28. Renovación automática del token (Fase 2.4) |
 | Decidir si se apaga Bot Fight Mode para eliminar el aviso de CSP de JavaScript Detections | Panel de Cloudflare | Issue 19 (opcional) |
-| Cache Rule para `/service-worker.js`: Caching → Cache Rules → Crear regla → "Si coincide": campo *URI Path* igual a `/service-worker.js` → *Omitir caché* (Bypass cache) → Implementar. Luego Caching → Configuración → Purgar caché → Purga personalizada → `https://doubleimpactstore.cl/service-worker.js` | Panel de Cloudflare | Issue 21 (el editor de reglas congeló Chrome al intentarlo con automatización) |
 | Fuente de Pages: hoy "Deploy from a branch"; pasar a "GitHub Actions" | Settings → Pages | Fases 2.1 y 5.2 |
 
 ## Orden recomendado
