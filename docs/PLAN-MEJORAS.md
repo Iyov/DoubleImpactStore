@@ -70,7 +70,7 @@ Resultado de la auditoría del 2026-10-28. El sitio cumple casi toda la especifi
 
 **Resultado:** prueba real contra la API con solo cambios de likes → "No hay cambios significativos", sin escribir archivos. `GH_PAT` configurado el 2026-10-28; primera renovación automática: 2026-11-01 09:00 UTC (Instagram exige que el token tenga ≥24 h).
 
-## Fase 3 — Seguridad efectiva en producción ✅ completada (parte en el sitio; quedan ajustes en Cloudflare)
+## Fase 3 — Seguridad efectiva en producción ✅ completada
 
 **Issues:** 1, 19
 
@@ -83,11 +83,13 @@ Hecho:
 4. `.htaccess` se conserva como referencia (Apache/Cloudflare), con un encabezado que aclara que GitHub Pages lo ignora.
 5. E2E `tests/e2e/security.spec.js`: cero violaciones de CSP en las 5 páginas, `<meta>` sin `'unsafe-inline'`, y un script inline inyectado queda bloqueado. Verificación puntual con red real: el catálogo carga 25 filas desde Google Sheets y GTM carga, sin violaciones.
 
-Pendiente en el panel de Cloudflare (lo hace el dueño):
-- **SSL/TLS → Edge Certificates → Always Use HTTPS: On.** Hoy `http://doubleimpactstore.cl` responde 200 sin redirigir.
-- **SSL/TLS → Edge Certificates → HSTS:** activar (`max-age` 6 meses, sin preload al inicio).
-- **Rules → Transform Rules → Modify Response Header** (todas las peticiones): `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`. La CSP puede seguir solo en `<meta>`; si se agrega como cabecera, copiar la línea de `.htaccess` (incluye `frame-ancestors 'none'`).
-- **Issue 19 — JavaScript Detections:** Cloudflare inyecta en cada página un script inline de detección de bots (`window.__CF$cv$params`, contenido distinto en cada petición, imposible de autorizar por hash), que la CSP bloquea con un error en consola. El sitio funciona igual. Desactivarlo en **Security → Settings (o Bots) → JavaScript Detections: Off** elimina el error.
+Configurado en Cloudflare el 2026-10-29 (verificado con `curl -I` y navegador en producción):
+- **Always Use HTTPS: On** → `http://` responde 301 a `https://`.
+- **HSTS:** `Strict-Transport-Security: max-age=15552000` (6 meses), sin `includeSubDomains` ni preload. Se activó también **"Encabezado antirrastreo"** del mismo diálogo → `X-Content-Type-Options: nosniff`.
+- **Transform Rule "Cabeceras de seguridad"** (Modify Response Header, todas las solicitudes): `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`.
+
+Pendiente (decisión del dueño):
+- **Issue 19 — JavaScript Detections:** en el plan Free están siempre activas mientras **Bot Fight Mode** esté encendido (lo está). Su script inline (`window.__CF$cv$params`, distinto en cada petición) es el único error de CSP que queda en consola; el sitio funciona igual. Quitarlo exige apagar Bot Fight Mode (Security → Configuración → Modo Bot Fight), lo que reduce la protección contra bots. Recomendación: mantener Bot Fight Mode y aceptar el aviso.
 
 **Criterio de aceptación:** cero violaciones CSP en la consola con GTM activo (cumplido en local y con red real; en producción, tras desactivar JavaScript Detections); redirección HTTPS y cabeceras visibles en `curl -I` (tras los ajustes de Cloudflare).
 
@@ -140,7 +142,7 @@ Pendiente en el panel de Cloudflare (lo hace el dueño):
 |---|---|---|
 | `INSTAGRAM_TOKEN` | Secret de Actions | Renovado el 2026-10-28 (vence ~2026-12-27 si no corre la renovación automática) |
 | `GH_PAT`: PAT fine-grained, solo este repo, permiso "Secrets: Read and write" | Secret de Actions | Configurado el 2026-10-28. Renovación automática del token (Fase 2.4) |
-| Ajustes de Cloudflare: Always Use HTTPS, HSTS, Transform Rule de cabeceras, JavaScript Detections off | Panel de Cloudflare | Fase 3 (pendientes) |
+| Decidir si se apaga Bot Fight Mode para eliminar el aviso de CSP de JavaScript Detections | Panel de Cloudflare | Issue 19 (opcional) |
 | Fuente de Pages: hoy "Deploy from a branch"; pasar a "GitHub Actions" | Settings → Pages | Fases 2.1 y 5.2 |
 
 ## Orden recomendado
