@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Permite escribir en el repositorio
+      actions: write   # Permite disparar el deploy tras subir cambios
 
     steps:
     - name: Checkout del código
@@ -52,4 +53,8 @@ jobs:
           fi
           git push
           echo "Cambios pusheados exitosamente"
+          # Un push con GITHUB_TOKEN no dispara otros workflows: se lanza el deploy explícitamente
+          gh workflow run deploy.yml --ref main
         fi
+      env:
+        GH_TOKEN: ${{ github.token }}

@@ -67,8 +67,11 @@ async function buildJs() {
   console.log(`[build] ${JS_BUNDLE} (bundle de ${JS_ENTRY} y sus módulos, ${fs.statSync(abs(JS_BUNDLE)).size}B)`);
 }
 
+// CRLF -> LF: con core.autocrlf, Windows tiene CRLF y git/CI tienen LF; el hash
+// debe ser el mismo en ambos para que el build sea reproducible.
 function contentHash(rel) {
-  return crypto.createHash('sha256').update(fs.readFileSync(abs(rel))).digest('hex').slice(0, 10);
+  const text = read(rel).replace(/\r\n/g, '\n');
+  return crypto.createHash('sha256').update(text).digest('hex').slice(0, 10);
 }
 
 function escapeRegex(str) {

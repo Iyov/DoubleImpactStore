@@ -28,6 +28,7 @@ const translations = {
     'controls.theme_light': 'Activar modo claro',
     'controls.menu_open': 'Abrir menú',
     'controls.menu_close': 'Cerrar menú',
+    'controls.scroll_progress': 'Progreso de lectura de la página',
     'offline.title': 'Estás sin conexión',
     'offline.text': 'Mostrando contenido guardado en la caché.',
     'hero.badge': 'Videojuegos retro originales y coleccionables',
@@ -205,6 +206,7 @@ const translations = {
     'controls.theme_light': 'Enable light mode',
     'controls.menu_open': 'Open menu',
     'controls.menu_close': 'Close menu',
+    'controls.scroll_progress': 'Page reading progress',
     'offline.title': 'You are offline',
     'offline.text': 'Showing cached content.',
     'hero.badge': 'Original retro games and collectibles',
@@ -597,7 +599,10 @@ export function initMobileMenu() {
   });
   nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', close));
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && nav.classList.contains('open')) close();
+    if (event.key === 'Escape' && nav.classList.contains('open')) {
+      close();
+      toggle.focus();
+    }
   });
 }
 

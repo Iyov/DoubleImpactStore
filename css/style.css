@@ -53,7 +53,8 @@
   --surface-2: #26262e;
   --text: #e8e8ec;
   --text-muted: #a3a3ad;
-  --accent: #e63946;
+  --accent: #d62f3c; /* fondo de botones: 4,85:1 con texto blanco (WCAG AA) */
+  --accent-text: #f25f6a; /* acento como texto: ≥4,7:1 sobre bg/surface/surface-2 */
   --accent-contrast: #ffffff;
   --accent-2: #4d9de0;
   --border: #34343d;
@@ -75,12 +76,13 @@
   --text: #1b1b1f;
   --text-muted: #5a5a63;
   --accent: #c2232f;
+  --accent-text: #c2232f;
   --accent-contrast: #ffffff;
   --accent-2: #2c6fa8;
   --border: #d6d8dd;
   --shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --success: #1f9d55;
+  --success: #187a42; /* 4,68:1 sobre el fondo del badge "Disponible" */
   --warning: #b7791f;
   --focus: #2c6fa8;
   --header-bg: rgba(255, 255, 255, 0.94);
@@ -241,7 +243,7 @@ h1, h2, h3, h4 {
 
 .btn--secondary:hover {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* ---------- Header / Nav ----------
@@ -562,7 +564,7 @@ h1, h2, h3, h4 {
 
 .featured-card__icon {
   font-size: 2.4rem;
-  color: var(--accent);
+  color: var(--accent-text);
   margin-bottom: 14px;
 }
 
@@ -701,7 +703,7 @@ h1, h2, h3, h4 {
 
 .efemeride-icon {
   font-size: 1.6rem;
-  color: var(--accent);
+  color: var(--accent-text);
   padding-top: 4px;
 }
 
@@ -809,7 +811,7 @@ h1, h2, h3, h4 {
 
 .blog-card__more {
   margin-top: 14px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
   font-size: 0.9rem;
 }
@@ -866,7 +868,6 @@ h1, h2, h3, h4 {
 .testimonial-role {
   font-size: 0.85rem;
   color: var(--text-muted);
-  opacity: 0.8;
   margin-top: 2px;
 }
 
@@ -895,7 +896,7 @@ h1, h2, h3, h4 {
 
 .service-icon {
   font-size: 2rem;
-  color: var(--accent);
+  color: var(--accent-text);
   margin-bottom: 12px;
 }
 
@@ -998,7 +999,7 @@ h1, h2, h3, h4 {
 
 .contact-card:hover,
 .contact-card:focus-visible {
-  color: var(--accent);
+  color: var(--accent-text);
   transform: translateY(-3px);
   box-shadow: var(--shadow-sm);
   outline: none;
@@ -1133,7 +1134,7 @@ h1, h2, h3, h4 {
 }
 
 .footer-nav a:hover {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .footer-bottom {
@@ -1220,7 +1221,7 @@ body.modal-open {
   font-size: clamp(4rem, 14vw, 8rem);
   font-weight: 900;
   margin: 0;
-  color: var(--accent);
+  color: var(--accent-text);
   line-height: 1;
 }
 
@@ -1258,7 +1259,7 @@ body.modal-open {
 }
 
 .security-note i {
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 1.6rem;
 }
 

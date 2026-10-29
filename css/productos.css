@@ -240,7 +240,7 @@
 
 .badge--sold {
   background: rgba(230, 57, 70, 0.18);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* ---------- Resultados / error ----------
@@ -358,7 +358,7 @@
 
 .sigla-key {
   font-weight: 800;
-  color: var(--accent);
+  color: var(--accent-text);
   min-width: 56px;
 }
 

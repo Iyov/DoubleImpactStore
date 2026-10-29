@@ -17,7 +17,8 @@
     "check:brand": "node scripts/check-brand.js",
     "check": "npm run check:siglas && npm run check:manifest && npm run check:brand && npm run check:csp && npm run check:minification",
     "csp": "node scripts/csp.js",
-    "check:csp": "node scripts/csp.js --check"
+    "check:csp": "node scripts/csp.js --check",
+    "site": "node scripts/build-site.js"
   },
   "keywords": [
     "doubleimpactstore",
@@ -29,6 +30,7 @@
   "license": "UNLICENSED",
   "private": true,
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "@playwright/test": "^1.49.0",
     "@vitest/coverage-v8": "^3.0.0",
     "cssnano": "^8.0.6",

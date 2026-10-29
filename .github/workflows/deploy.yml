@@ -1,0 +1,57 @@
+name: Deploy a GitHub Pages
+
+# Publica solo _site/ (archivos públicos, ver scripts/build-site.js):
+#  - tras un CI exitoso de un push a main;
+#  - cuando el bot de Instagram sube cambios (lo dispara update-instagram.yml,
+#    porque los pushes con GITHUB_TOKEN no activan otros workflows);
+#  - manualmente.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Checkout del código
+      uses: actions/checkout@v5
+      with:
+        ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+    - name: Configurar Node
+      uses: actions/setup-node@v5
+      with:
+        node-version: '22'
+
+    - name: Armar _site/ y verificar referencias
+      run: node scripts/build-site.js
+
+    - name: Configurar Pages
+      uses: actions/configure-pages@v5
+
+    - name: Subir artefacto
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: _site
+
+    - name: Publicar
+      id: deployment
+      uses: actions/deploy-pages@v4

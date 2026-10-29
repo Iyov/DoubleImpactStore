@@ -10,7 +10,7 @@
  * Cualquier cambio en el nombre reinstala el Service Worker y descarta la caché anterior.
  */
 const CACHE_VERSION = '2026-10-28_2103';
-const ASSETS_HASH = 'f457612495';
+const ASSETS_HASH = '36503f8a04';
 const CACHE_NAME = `doubleimpact-v${CACHE_VERSION}-${ASSETS_HASH}`;
 
 const CORE_ASSETS = [
