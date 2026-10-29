@@ -75,7 +75,7 @@ Por eso el historial está lleno de commits "Se modificaron N post desde Instagr
 
 ### Service Worker / PWA
 
-`service-worker.js`, caché `doubleimpact-v{CACHE_VERSION}-{ASSETS_HASH}`: `CACHE_VERSION` lo escribe el bot de Instagram (cuando se agregan/eliminan posts) y `ASSETS_HASH` el build (cuando cambia CSS/JS). Cambiar cualquiera reinstala el SW y descarta la caché anterior; no los edites a mano.
+`service-worker.js`, caché `doubleimpact-v{CACHE_VERSION}-{ASSETS_HASH}`: `CACHE_VERSION` lo escribe el bot de Instagram (cuando se agregan/eliminan posts) y `ASSETS_HASH` el build (cuando cambia CSS/JS). Cambiar cualquiera reinstala el SW y descarta la caché anterior; no los edites a mano. Ojo: Cloudflare cachea `service-worker.js` hasta 4 h en el borde (issue 21), así que un SW nuevo puede tardar en llegar a producción.
 - Precache (`CORE_ASSETS`): páginas, CSS, `webfonts/*.woff2`, bundle, JSON de datos, logos. Si falta alguno, `install` falla a propósito y sigue el SW anterior: al agregar o renombrar un asset del precache, actualiza la lista.
 - Navegaciones: network-first; sin red, la página cacheada (también URL limpia `/productos` → `/productos.html`) o `/index.html`, y avisa `{type:'dis-offline'}` al cliente de esa navegación (`resultingClientId`) para mostrar `#offline-indicator`.
 - CSV de Google Sheets: network-first con fallback a caché. Estáticos del propio origen: cache-first por URL exacta (incluye `?v=`); sin red, cualquier versión cacheada del archivo (`ignoreSearch`). `/cdn-cgi/` (Cloudflare) no se intercepta.
