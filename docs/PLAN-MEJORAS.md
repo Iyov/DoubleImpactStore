@@ -35,7 +35,7 @@ Resultado de la auditoría del 2026-10-28. El sitio cumple casi toda la especifi
 | 17 | `AGENTS v0.2.md` y `AGENTS v0.3.md` obsoletos en la raíz | Baja | 5 |
 | 18 | ~~`cloudflareToken` vacío en `analytics.js`~~ **No aplica:** Cloudflare (proxy) ya inyecta automáticamente el beacon de Web Analytics y funciona (verificado en producción). Dejar `cloudflareToken` vacío para no contar doble | — | — |
 | 19 | Cloudflare (ya delante del dominio) inyecta un script inline de "JavaScript Detections" que la CSP bloquea | Baja | 3 |
-| 20 | **Analytics no mide nada:** el contenedor `GTM-NB5CQ3VR` está vacío (`"tags":[]`) y `analytics.js` no carga GA4 cuando GTM está presente | Alta | Config |
+| 20 | ~~Analytics no mide nada: el contenedor `GTM-NB5CQ3VR` estaba vacío~~ **Resuelto 2026-10-29:** publicada la versión 2 del contenedor con la etiqueta "GA4 - Etiqueta de Google" (`G-CHJJRHE1YK`, Initialization - All Pages). Verificado en producción: `POST /g/collect` con `tid=G-CHJJRHE1YK`, sin violaciones de CSP | Alta | — |
 
 ---
 
@@ -141,7 +141,6 @@ Pendiente en el panel de Cloudflare (lo hace el dueño):
 | `INSTAGRAM_TOKEN` | Secret de Actions | Renovado el 2026-10-28 (vence ~2026-12-27 si no corre la renovación automática) |
 | `GH_PAT`: PAT fine-grained, solo este repo, permiso "Secrets: Read and write" | Secret de Actions | Configurado el 2026-10-28. Renovación automática del token (Fase 2.4) |
 | Ajustes de Cloudflare: Always Use HTTPS, HSTS, Transform Rule de cabeceras, JavaScript Detections off | Panel de Cloudflare | Fase 3 (pendientes) |
-| Etiqueta "Google tag" con `G-CHJJRHE1YK`, activador All Pages, y publicar | Panel de GTM (`GTM-NB5CQ3VR`) | Issue 20 |
 | Fuente de Pages: hoy "Deploy from a branch"; pasar a "GitHub Actions" | Settings → Pages | Fases 2.1 y 5.2 |
 
 ## Orden recomendado
