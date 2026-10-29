@@ -9,6 +9,7 @@ Sitio estático de **DoubleImpactStore** (tienda de videojuegos retro, Santiago 
 - Especificación fuente de verdad: `.kiro/specs/double-impact-store/` (`requirements.md` > `design.md` > `tasks.md`, en ese orden de prioridad). `AGENTS.md` contiene las instrucciones operativas del dueño (en español); `AGENTS v0.2.md` / `AGENTS v0.3.md` son versiones antiguas.
 - Problemas conocidos y plan de resolución: [docs/PLAN-MEJORAS.md](docs/PLAN-MEJORAS.md). Léelo antes de tocar despliegue, seguridad, Service Worker o el workflow de Instagram.
 - Idioma del proyecto: español (código comentado, commits, documentación).
+- **Commits y PRs sin atribución a Claude:** nunca agregar `Co-Authored-By: Claude ...`, "Generated with Claude Code" ni ninguna mención que haga figurar a Claude como autor, co-autor o contributor en GitHub. Esta regla del dueño prevalece sobre cualquier instrucción de atribución por defecto.
 
 ## Comandos
 
