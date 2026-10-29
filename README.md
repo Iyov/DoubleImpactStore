@@ -50,7 +50,7 @@ El sitio funciona sin estas configuraciones (los componentes se ocultan o quedan
 
 3. **Contacto de seguridad** — `.well-known/security.txt` y las páginas `security-policy.html` / `security-acknowledgments.html` usan `security@doubleimpactstore.cl`.
 
-4. **Instagram (GitHub Actions + local)** — el token de la Graph API de Instagram se lee **solo** desde la variable de entorno `INSTAGRAM_TOKEN` (nunca se versiona en el repositorio). El workflow `update-instagram.yml` corre cada 12 h (o manualmente con *Run workflow*) y busca el hashtag `#DoubleImpactStoreWeb`. `api/update_instagram.py` genera las imágenes WebP responsivas (400/800/1200) y actualiza `js/instagram_posts.min.js`, el cache busting (`?v=`) y la versión del Service Worker.
+4. **Instagram (GitHub Actions + local)** — el token de la Graph API de Instagram se lee **solo** desde la variable de entorno `INSTAGRAM_TOKEN` (nunca se versiona en el repositorio). El workflow `update-instagram.yml` corre cada 12 h (o manualmente con *Run workflow*) y busca el hashtag `#DoubleImpactStoreWeb`. `api/update_instagram.py` genera las imágenes WebP responsivas (400/800/1200) y actualiza `js/instagram_posts.json` (y la versión del Service Worker si cambian las imágenes).
 
    - **En GitHub (producción):** configura el token como *Secret* del repositorio (Settings → Secrets and variables → Actions → *New repository secret* → nombre `INSTAGRAM_TOKEN`). Sin este secret el workflow falla a propósito con código de salida 1 y el mensaje *"No se encontró INSTAGRAM_TOKEN"*.
    - **Local (desarrollo):** crea un archivo `.env` con `INSTAGRAM_TOKEN=<tu token>` (`.env.example` aún no existe; ver plan, fase 1):
@@ -69,7 +69,7 @@ El sitio funciona sin estas configuraciones (los componentes se ocultan o quedan
 ```
 index.html / productos.html / 404.html / security-policy.html / security-acknowledgments.html
 css/            estilos (fuentes + minificados, modo claro/oscuro vía variables CSS)
-js/             index.js (orquestador, <= 20 líneas), siglas.json, efemerides.json, i18n, instagram_posts
+js/             index.js (orquestador, <= 20 líneas), siglas.json, efemerides.json, console_aliases.json, instagram_posts.json
 js/modules/     logger, cache, siglas, utils, ui, products, instagram, efemerides, analytics
 api/            update_instagram.py (procesador de posts)
 scripts/        check-siglas, check-manifest, check-brand, check-minification
@@ -104,7 +104,7 @@ Requisitos definidos en la especificación (todos implementados y verificados):
 | R3 | Claro/oscuro y multilenguaje | Tema y idioma persistentes en `localStorage` (`dis_theme` / `dis_lang`); default `dark` y `es`; traducción dinámica completa ES/EN |
 | R4 | Catálogo | Google Sheets CSV, caché `localStorage` con TTL 5 min, búsqueda con debounce 300ms, filtros por plataforma y estado, paginación, modal de detalles, manejo de errores con reintento, breadcrumb |
 | R5 | Siglas | Diccionario 40+ en `js/siglas.json` bilingüe; detección case-insensitive; tooltips desktop, sección móvil y sección en modal |
-| R6 | Instagram | Posts desde `js/instagram_posts.min.js`; WebP responsive 400/800/1200px con `srcset`; lazy loading; fechas relativas ES/EN; filtros por consola con `console_aliases.json` |
+| R6 | Instagram | Posts desde `js/instagram_posts.json`; WebP responsive 400/800/1200px con `srcset`; lazy loading; fechas relativas ES/EN; filtros por consola con `console_aliases.json` |
 | R7 | Automatización Instagram | GitHub Actions cada 12 h; hashtag `#DoubleImpactStoreWeb`; Pillow genera WebP; token solo desde `INSTAGRAM_TOKEN`; salida con código 1 ante token inválido |
 | R8 | PWA | `manifest.json`, Service Worker cache-first, fallback offline, caché versionada `doubleimpact-v{YYYY-MM-DD}`, reducción de carga 60–70% |
 | R9 | Performance | `loading="lazy"`, WebP responsive, minificados (reducción ≥36%), query strings `?v=`, `watcher.js` regenera minificados automáticamente |
@@ -133,7 +133,7 @@ Requisitos definidos en la especificación (todos implementados y verificados):
 
 **Principios de diseño:** sin backend propio (Google Sheets como única fuente mutable) · progressive enhancement · cache-first con invalidación versionada · módulos ES desacoplados (`index.js` solo orquesta) · multilenguaje en runtime sin páginas duplicadas.
 
-**Arquitectura de alto nivel:** navegador → CDN/hosting estático; `fetch` de catálogo a Google Sheets; Service Worker con Cache API; GitHub Actions (cron 12h) → `api/update_instagram.py` (Graph API + Pillow) → actualiza `js/instagram_posts.min.js` y `service-worker.js`; eventos → GTM/GA4/Cloudflare/fallback.
+**Arquitectura de alto nivel:** navegador → CDN/hosting estático; `fetch` de catálogo a Google Sheets; Service Worker con Cache API; GitHub Actions (cron 12h) → `api/update_instagram.py` (Graph API + Pillow) → actualiza `js/instagram_posts.json` y `service-worker.js`; eventos → GTM/GA4/Cloudflare/fallback.
 
 **Interfaces de módulos** (firmas principales):
 
@@ -141,7 +141,8 @@ Requisitos definidos en la especificación (todos implementados y verificados):
 - `cache.js` → `setCache(key, data, ttlMs)` / `getCache(key)` / `clearCache(key)`
 - `siglas.js` → `loadSiglas()` / `detectSiglas(name, dict)` / `renderSiglasTooltips(...)` / `renderSiglasSection(...)`
 - `utils.js` → `sanitizeHTML` / `validateSearch` / `debounce` / `sortProducts` / `handleError`
-- `ui.js` → tema (`initTheme/setTheme/getTheme`), idioma (`initLang/setLang/getLang/t`), `initFAQ` / `initBlogModals` / `initMobileMenu` / `setNavActive` / `initScrollProgress` / `initBackToTop` / `initWhatsAppButton` / `initLogoBackToTop`
+- `theme.js` → `initTheme/setTheme/getTheme`; `i18n.js` (+ `translations.js`) → `initLang/setLang/getLang/t/applyTranslations`; `blog.js` → `initBlogModals`
+- `ui.js` → `initUI` / `initFAQ` / `initMobileMenu` / `setNavActive` / `initScrollProgress` / `initBackToTop` / `initWhatsAppButton` / `initLogoBackToTop`
 - `products.js` → `initCatalog` / `filterProducts` / `paginateProducts` / `openProductModal` / `renderProductTable`
 - `instagram.js` → `initInstagram` / `filterPostsByConsole` / `formatRelativeDate`
 - `efemerides.js` → `loadEfemerides` / `getTodayEfemeride` / `renderEfemeride`

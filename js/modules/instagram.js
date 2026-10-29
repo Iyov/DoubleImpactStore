@@ -1,7 +1,7 @@
 // Posts de Instagram: renderizado, filtros por consola y fechas relativas
 // Feature: double-impact-store, Requirements 6.1–6.7, 19.1
 
-import { t } from './ui.js';
+import { getLang, t } from './i18n.js';
 
 const PLACEHOLDER_IMAGE = 'img/placeholder-post.webp';
 
@@ -74,14 +74,6 @@ export function formatRelativeDate(date, lang) {
   const noun = pluralize(lang, UNIT_NAMES[lang][rel.unit], count);
   if (lang === 'en') return `${count} ${noun} ago`;
   return `Hace ${count} ${noun}`;
-}
-
-function getActiveLang() {
-  try {
-    return window.localStorage.getItem('dis_lang') || 'es';
-  } catch {
-    return 'es';
-  }
 }
 
 function buildPostCard(post, lang, aliases) {
@@ -182,7 +174,7 @@ export function initInstagram(posts, aliases) {
   function render(filterKey) {
     grid.innerHTML = '';
     const filtered = filterPostsByConsole(currentPosts, filterKey, currentAliases);
-    filtered.forEach((post) => grid.appendChild(buildPostCard(post, getActiveLang(), currentAliases)));
+    filtered.forEach((post) => grid.appendChild(buildPostCard(post, getLang(), currentAliases)));
   }
 
   buttons.forEach(({ key, label }) => {
@@ -216,12 +208,22 @@ export function rerenderInstagram() {
   }
 }
 
-export async function initInstagramSection(posts) {
-  let aliases = null;
-  try {
-    aliases = await loadAliases();
-  } catch (err) {
-    // Sin aliases: los posts se muestran sin filtros por consola.
+// Generado por api/update_instagram.py
+export async function loadPosts() {
+  const res = await fetch('js/instagram_posts.json');
+  if (!res.ok) {
+    throw new Error(`No se pudieron cargar los posts de Instagram (HTTP ${res.status})`);
   }
-  initInstagram(posts || [], aliases);
+  return res.json();
+}
+
+export async function initInstagramSection() {
+  if (!document.querySelector('#instagram-root')) return;
+  const [posts, aliases] = await Promise.all([
+    loadPosts().catch(() => []),
+    // Sin aliases: los posts se muestran sin filtros por consola.
+    loadAliases().catch(() => null)
+  ]);
+  initInstagram(posts, aliases);
+  window.addEventListener('dis:langchange', rerenderInstagram);
 }

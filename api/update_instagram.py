@@ -12,9 +12,9 @@ Requisitos de entorno:
                          en GitHub es un Secret; en local, va en .env.
 
 Salidas (solo si hay cambios significativos; los likes no cuentan):
-    - js/instagram_posts.js y js/instagram_posts.min.js (datos de posts)
+    - js/instagram_posts.json (datos de posts; el front lo carga con fetch y el
+      Service Worker lo sirve con red primero, así que no necesita ?v=)
     - img/IG_<id>.jpeg + variantes _400/_800/_1200.webp
-    - Versión (?v=YYYY-MM-DD_HHMM) de instagram_posts.min.js en todos los *.html
     - CACHE_VERSION de service-worker.js, solo si se agregan o eliminan posts
     - commit_message.txt (lo usa el workflow)
 
@@ -23,7 +23,6 @@ Si el token es inválido/expirado, termina con código de salida 1.
 
 import os
 import sys
-import glob
 import json
 import requests
 import re
@@ -82,9 +81,7 @@ def redact(text, token):
 HASHTAG_FILTER = '#DoubleImpactStoreWeb'
 MEDIA_URL = 'https://graph.instagram.com/me/media'
 MEDIA_FIELDS = 'id,caption,media_type,media_url,permalink,timestamp,like_count,children{media_url,media_type}'
-JS_FILE_PATH = 'js/instagram_posts.js'
-MIN_JS_FILE_PATH = 'js/instagram_posts.min.js'
-HTML_GLOB = '*.html'
+POSTS_FILE_PATH = 'js/instagram_posts.json'
 SW_FILE_PATH = 'service-worker.js'
 IMAGE_DIR = 'img/'
 MAX_POSTS = 1000  # Número máximo de posts a obtener
@@ -274,21 +271,15 @@ def process_posts(media_list):
     return selected_posts
 
 def load_existing_posts():
-    """Carga los posts existentes desde el archivo JS."""
-    if not os.path.exists(JS_FILE_PATH):
+    """Carga los posts publicados actualmente."""
+    if not os.path.exists(POSTS_FILE_PATH):
         return []
-
     try:
-        with open(JS_FILE_PATH, 'r', encoding='utf-8') as f:
-            content = f.read()
-            # Extraer el JSON del archivo JS
-            match = re.search(r'const INSTAGRAM_POSTS_DATA = (\[.*?\]);', content, re.DOTALL)
-            if match:
-                return json.loads(match.group(1))
+        with open(POSTS_FILE_PATH, 'r', encoding='utf-8') as f:
+            return json.load(f)
     except Exception as e:
         print(f"Error al leer posts existentes: {e}")
-
-    return []
+        return []
 
 def post_differs(old_post, new_post):
     """True si el post cambió en algún campo significativo (ignora likes)."""
@@ -346,19 +337,6 @@ def cleanup_removed_images(old_posts, new_posts):
     return removed
 
 
-def update_html_versions(version):
-    """Actualiza el ?v= de instagram_posts.min.js en todas las páginas."""
-    pattern = r"instagram_posts\.min\.js\?v=[^\"']+"
-    replacement = f"instagram_posts.min.js?v={version}"
-    for html_path in sorted(glob.glob(HTML_GLOB)):
-        with open(html_path, 'r', encoding='utf-8') as f:
-            html = f.read()
-        new_html = re.sub(pattern, replacement, html)
-        if new_html != html:
-            with open(html_path, 'w', encoding='utf-8') as f:
-                f.write(new_html)
-
-
 def bump_sw_cache_version(version):
     """Cambia CACHE_VERSION: el Service Worker se reinstala y descarta la caché anterior."""
     if not os.path.exists(SW_FILE_PATH):
@@ -372,7 +350,7 @@ def bump_sw_cache_version(version):
 
 
 def update_files(new_posts):
-    """Actualiza datos, versiones de las páginas y Service Worker solo si hay cambios significativos."""
+    """Actualiza los datos y, si cambian las imágenes, el Service Worker; solo si hay cambios significativos."""
     if not new_posts:
         print("No se encontraron posts nuevos con el hashtag.")
         return
@@ -414,32 +392,15 @@ def update_files(new_posts):
 
     print(f"Actualizando archivos...")
 
-    # 1. Generar JS Normal
-    js_content = "// ========== DATOS DE POSTS DE INSTAGRAM AUTOMATIZADOS ==========\n"
-    js_content += f"// Última actualización: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
-    js_content += "const INSTAGRAM_POSTS_DATA = " + json.dumps(new_posts, indent=4, ensure_ascii=False) + ";\n\n"
-    js_content += "function getInstagramPostsData() {\n    return INSTAGRAM_POSTS_DATA;\n}"
+    # 1. Datos de posts: el Service Worker sirve los .json con red primero,
+    #    así que llegan a los usuarios sin cache busting ni cambios en el HTML.
+    with open(POSTS_FILE_PATH, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(json.dumps(new_posts, indent=2, ensure_ascii=False) + '\n')
 
-    with open(JS_FILE_PATH, 'w', encoding='utf-8') as f:
-        f.write(js_content)
-
-    # 2. Generar MIN.JS
-    min_js_content = "const INSTAGRAM_POSTS_DATA=" + json.dumps(new_posts, separators=(',', ':'), ensure_ascii=False) + ";"
-    min_js_content += "function getInstagramPostsData(){return INSTAGRAM_POSTS_DATA}"
-
-    with open(MIN_JS_FILE_PATH, 'w', encoding='utf-8') as f:
-        f.write(min_js_content)
-
-    # 3. Cache busting de los datos en todas las páginas: basta para que los
-    #    navegadores (y el Service Worker, que cachea por URL completa) pidan
-    #    la versión nueva sin invalidar toda la caché de la PWA.
-    version = datetime.now().strftime('%Y-%m-%d_%H%M')
-    update_html_versions(version)
-
-    # 4. Solo si cambia el conjunto de imágenes, renovar la caché del Service Worker
+    # 2. Solo si cambia el conjunto de imágenes, renovar la caché del Service Worker
     #    para descartar las imágenes que ya no se usan.
     if added > 0 or deleted > 0:
-        bump_sw_cache_version(version)
+        bump_sw_cache_version(datetime.now().strftime('%Y-%m-%d_%H%M'))
 
     print(f"Proceso completado. Archivos y variantes de imagen generados.")
 

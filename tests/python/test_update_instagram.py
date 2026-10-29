@@ -67,32 +67,30 @@ def site(tmp_path, monkeypatch):
     (tmp_path / 'js').mkdir()
     (tmp_path / 'img').mkdir()
     existing = [post('1'), post('2')]
-    (tmp_path / 'js' / 'instagram_posts.js').write_text(
-        'const INSTAGRAM_POSTS_DATA = ' + json.dumps(existing, indent=4) + ';\n', encoding='utf-8'
-    )
+    (tmp_path / 'js' / 'instagram_posts.json').write_text(json.dumps(existing, indent=2), encoding='utf-8')
     for page in ('index.html', 'productos.html', '404.html'):
-        (tmp_path / page).write_text('<script src="js/instagram_posts.min.js?v=viejo"></script>', encoding='utf-8')
+        (tmp_path / page).write_text('<script type="module" src="js/index.min.js?v=viejo"></script>', encoding='utf-8')
     (tmp_path / 'service-worker.js').write_text("const CACHE_VERSION = 'viejo';\n", encoding='utf-8')
     return tmp_path, existing
 
 
 def test_solo_likes_no_escribe_nada(site):
     root, existing = site
+    before = (root / 'js' / 'instagram_posts.json').read_text(encoding='utf-8')
     ui.update_files([dict(p, likes=500) for p in existing])
     assert not (root / 'commit_message.txt').exists()
-    assert not (root / 'js' / 'instagram_posts.min.js').exists()
-    assert 'v=viejo' in (root / 'index.html').read_text(encoding='utf-8')
+    assert (root / 'js' / 'instagram_posts.json').read_text(encoding='utf-8') == before
 
 
-def test_modificacion_actualiza_todas_las_paginas_sin_tocar_el_sw(site):
+def test_modificacion_actualiza_el_json_sin_tocar_html_ni_sw(site):
     root, existing = site
     ui.update_files([existing[0], dict(existing[1], title='Nuevo título')])
     assert (root / 'commit_message.txt').read_text(encoding='utf-8') == 'Se modificaron 1 post desde Instagram'
+    posts = json.loads((root / 'js' / 'instagram_posts.json').read_text(encoding='utf-8'))
+    assert posts[1]['title'] == 'Nuevo título'
     for page in ('index.html', 'productos.html', '404.html'):
-        html = (root / page).read_text(encoding='utf-8')
-        assert 'v=viejo' not in html and 'instagram_posts.min.js?v=' in html
+        assert 'v=viejo' in (root / page).read_text(encoding='utf-8')
     assert "CACHE_VERSION = 'viejo'" in (root / 'service-worker.js').read_text(encoding='utf-8')
-    assert 'Nuevo título' in (root / 'js' / 'instagram_posts.min.js').read_text(encoding='utf-8')
 
 
 def test_post_agregado_renueva_la_cache_del_sw(site):

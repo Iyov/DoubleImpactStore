@@ -40,7 +40,7 @@ jobs:
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         # Solo los archivos que genera el script (-A incluye imágenes eliminadas)
-        git add -A js/instagram_posts.js js/instagram_posts.min.js img/ ./*.html service-worker.js
+        git add -A js/instagram_posts.json img/ service-worker.js
 
         if git diff --staged --quiet; then
           echo "No hay cambios para commitear"

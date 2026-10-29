@@ -10,7 +10,7 @@ const EXCLUDE_DIRS = new Set(['node_modules', '.git', 'coverage', 'test-results'
 const EXCLUDE_FILES = new Set(['package-lock.json', 'check-brand.js']);
 // Captions reales de Instagram (generados por api/update_instagram.py): pueden
 // contener hashtags históricos de la tienda de origen, así que se ignoran.
-const CAPTION_FILES = new Set(['instagram_posts.js', 'instagram_posts.min.js']);
+const CAPTION_FILES = new Set(['instagram_posts.json']);
 const CAPTION_FIELD = /"?description"?\s*:\s*"(?:[^"\\]|\\.)*"/g;
 const PATTERNS = [
   /RopavejeroRetro/i,

@@ -1,21 +1,9 @@
 // Feature: double-impact-store, Properties 1, 2, 7, 10: UI
 import { describe, it, expect, beforeEach } from 'vitest';
 import fc from 'fast-check';
-import {
-  THEME_KEY,
-  LANG_KEY,
-  DEFAULT_THEME,
-  DEFAULT_LANG,
-  getTheme,
-  setTheme,
-  initTheme,
-  getLang,
-  t,
-  setLang,
-  setFaqOpen,
-  setNavActive,
-  getTranslations
-} from '../js/modules/ui.js';
+import { THEME_KEY, DEFAULT_THEME, getTheme, setTheme, initTheme } from '../js/modules/theme.js';
+import { LANG_KEY, DEFAULT_LANG, getLang, t, setLang, getTranslations } from '../js/modules/i18n.js';
+import { setFaqOpen, setNavActive } from '../js/modules/ui.js';
 
 function buildFaqItems(count = 5) {
   const items = [];

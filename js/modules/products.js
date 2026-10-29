@@ -4,7 +4,7 @@
 import { setCache, getCache, clearCache, CACHE_KEY, CATALOG_TTL_MS } from './cache.js';
 import { sanitizeHTML, validateSearch, debounce, sortProducts, handleError } from './utils.js';
 import { loadSiglas, detectSiglas, renderSiglasTooltips, renderSiglasSection } from './siglas.js';
-import { getLang, t } from './ui.js';
+import { getLang, t } from './i18n.js';
 import { logger } from './logger.js';
 
 export const GOOGLE_SHEETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/1ekyKZHhUIwQDFtqEblnJN_5SNeYEqOlKOja1wnCutLY/gviz/tq?tqx=out:csv';

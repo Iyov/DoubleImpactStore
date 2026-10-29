@@ -18,7 +18,7 @@ const PUBLIC = [
   { dir: '.', match: /\.html$/ },
   { files: ['manifest.json', 'service-worker.js', 'robots.txt', 'sitemap.xml', 'CNAME'] },
   { dir: 'css', match: /\.min\.css$/ },
-  { dir: 'js', match: /^(index\.min\.js|instagram_posts\.min\.js|[\w-]+\.json)$/ },
+  { dir: 'js', match: /^(index\.min\.js|[\w-]+\.json)$/ },
   { dir: 'img', match: /./ },
   { dir: 'webfonts', match: /./ },
   { dir: '.well-known', match: /./ }
@@ -75,7 +75,7 @@ function referencesIn(rel, content) {
   } else if (rel === 'service-worker.js') {
     const list = /const CORE_ASSETS = \[([\s\S]*?)\];/.exec(content);
     for (const [, value] of (list ? list[1] : '').matchAll(/'([^']+)'/g)) refs.push(value);
-  } else if (rel === 'js/instagram_posts.min.js') {
+  } else if (rel === 'js/instagram_posts.json') {
     // Rutas relativas a la página (raíz del sitio), no a js/
     for (const [, image] of content.matchAll(/"?image"?\s*:\s*"([^"]+)"/g)) {
       const base = `/${image.replace(/\.[^.]+$/, '')}`;

@@ -128,17 +128,20 @@ Pendiente (decisión del dueño):
 
 **Criterio de aceptación:** PRs muestran checks verdes; el sitio publicado no expone `.kiro/`, `tests/` ni `AGENTS*.md`. Cumplido.
 
-## Fase 6 — Refactor de módulos
+## Fase 6 — Refactor de módulos ✅ completada
 
 **Issues:** 9, 10, 11
 
-1. Extraer el diccionario de `ui.js` a `js/i18n/es.json` y `js/i18n/en.json` (o `js/modules/translations.js`), y la lógica de idioma a `js/modules/i18n.js` (`t`, `getLang`, `setLang`, `applyTranslations`). `ui.js` conserva tema, FAQ, blog, menú, scroll.
-2. Separar `js/modules/theme.js` si `ui.js` sigue >300 líneas.
-3. Cambiar `update_instagram.py` para generar `js/instagram_posts.json`; `instagram.js` lo carga con `fetch` (como `siglas.json`). Eliminar la función global y el `<script>` clásico de las tres páginas; quitar el `typeof getInstagramPostsData` de `index.js`.
-4. `instagram.js` usa `getLang()` importado (11).
-5. Actualizar `design.md` (interfaces de módulos) y los tests de `ui.test.js` / `instagram.test.js`.
+1. **`ui.js` dividido (9):** de 743 a 186 líneas. `translations.js` (diccionario ES/EN), `i18n.js` (`getLang`/`setLang`/`t`/`applyTranslations`), `theme.js` (tema) y `blog.js` (artículos + modal); `ui.js` conserva FAQ, menú, nav activa, scroll, botones flotantes, offline e `initUI()`. `products.js`, `instagram.js` y `efemerides.js` importan de `i18n.js`.
+2. **Instagram a JSON (10):** `api/update_instagram.py` genera `js/instagram_posts.json`; `instagram.js` lo carga con `fetch`. Se eliminaron `js/instagram_posts.js`, `.min.js`, la función global `getInstagramPostsData` y el `<script>` clásico de las 5 páginas; el bot ya no modifica HTML. El Service Worker sirve todos los `*.json` con red primero, lo que además arregla un bug latente: `siglas.json`, `efemerides.json` y `console_aliases.json` eran cache-first y sus cambios no llegaban a quien ya tenía el SW instalado.
+3. **`instagram.js` usa `getLang()` (11)** en lugar de leer `localStorage` directamente.
+4. **`js/index.js`: 16 líneas** (antes 23, el requisito R19 exige ≤20), solo orquesta: cada `init*` comprueba si su sección existe.
+5. **Bugs encontrados en el refactor:**
+   - Instagram y la efeméride **no se re-renderizaban al cambiar de idioma** (`rerenderInstagram` existía pero nadie la llamaba): ahora ambos escuchan `dis:langchange`.
+   - La efeméride **nunca se mostraba en inglés**: el JSON usa claves `ES`/`EN` y el código buscaba `efemeride['en']`. Las 366 traducciones existían pero no se usaban.
+6. Tests: unitario de regresión de la efeméride en inglés, E2E de cambio de idioma en Instagram + efeméride, pytest adaptados al JSON. `design.md`, `CLAUDE.md` y `README.md` actualizados.
 
-**Criterio de aceptación:** `npm test` y E2E en verde; `index.js` sigue ≤20 líneas; sin variables globales propias en `window`.
+**Criterio de aceptación:** `npm test` y E2E en verde; `index.js` ≤20 líneas; sin variables globales propias en `window`. Cumplido: 43 unitarios, 44 E2E, 16 pytest.
 
 ---
 

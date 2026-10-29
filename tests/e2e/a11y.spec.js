@@ -68,6 +68,22 @@ test.describe('Idioma entre páginas', () => {
     await expect(page.locator('[data-i18n="products.title"]').first()).toHaveText('Catalog');
   });
 
+  test('al cambiar de idioma se traducen Instagram y la efeméride del día', async ({ page, request }) => {
+    const data = await (await request.get('/js/efemerides.json')).json();
+    const now = new Date();
+    const today = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const efemeride = data.efemerides.find((entry) => entry.date === today);
+
+    await page.goto('/index.html');
+    const igMeta = page.locator('.ig-card__meta').first();
+    await expect(igMeta).toContainText('Hace');
+    if (efemeride) await expect(page.locator('.efemeride-title')).toHaveText(efemeride.ES.title);
+
+    await page.locator('#lang-toggle').click();
+    await expect(igMeta).toContainText('ago');
+    if (efemeride) await expect(page.locator('.efemeride-title')).toHaveText(efemeride.EN.title);
+  });
+
   test('la página 404 se muestra en inglés', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('dis_lang', 'en'));
     await page.goto('/404.html');

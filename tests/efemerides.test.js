@@ -4,7 +4,7 @@ import fc from 'fast-check';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getTodayEfemeride } from '../js/modules/efemerides.js';
+import { getTodayEfemeride, renderEfemeride } from '../js/modules/efemerides.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -47,5 +47,19 @@ describe('efemerides.js', () => {
       expect(entry.ES && entry.ES.title).toBeTruthy();
       expect(entry.EN && entry.EN.title).toBeTruthy();
     });
+  });
+
+  it('renderEfemeride usa el idioma pedido (claves ES/EN del JSON con lang en minúscula)', () => {
+    document.body.innerHTML = '<section><div id="efemerides-content"></div></section>';
+    const container = document.getElementById('efemerides-content');
+    const entry = {
+      date: '18/08',
+      ES: { title: 'Título en español', text: 'Texto', det: 'Detalle' },
+      EN: { title: 'English title', text: 'Text', det: 'Detail' }
+    };
+    renderEfemeride(entry, container, 'en');
+    expect(container.querySelector('.efemeride-title').textContent).toBe('English title');
+    renderEfemeride(entry, container, 'es');
+    expect(container.querySelector('.efemeride-title').textContent).toBe('Título en español');
   });
 });

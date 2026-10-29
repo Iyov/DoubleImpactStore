@@ -6,7 +6,7 @@
    - Cache busting: escribe ?v=<hash de contenido> de esos assets en cada *.html
    - Escribe ASSETS_HASH en service-worker.js: si cambia algún asset, el
      Service Worker se reinstala con una caché nueva
-   js/instagram_posts*.js y CACHE_VERSION los gestiona api/update_instagram.py.
+   js/instagram_posts.json y CACHE_VERSION los gestiona api/update_instagram.py.
    Uso:
      node watcher.js --once   -> build único
      node watcher.js          -> modo watch (rebuild al cambiar una fuente)
@@ -107,7 +107,7 @@ function watchedSources() {
     for (const entry of fs.readdirSync(abs(dir), { withFileTypes: true })) {
       const rel = `${dir}/${entry.name}`;
       if (entry.isDirectory()) walk(rel);
-      else if (/\.js$/.test(entry.name) && !/\.min\.js$/.test(entry.name) && entry.name !== 'instagram_posts.js') js.push(rel);
+      else if (/\.js$/.test(entry.name) && !/\.min\.js$/.test(entry.name)) js.push(rel);
     }
   };
   walk('js');

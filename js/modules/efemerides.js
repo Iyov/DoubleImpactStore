@@ -2,7 +2,7 @@
 // Feature: double-impact-store, Requirements 13.1–13.3, 19.1
 
 import { sanitizeHTML } from './utils.js';
-import { t } from './ui.js';
+import { getLang, t } from './i18n.js';
 
 export async function loadEfemerides() {
   const res = await fetch('./js/efemerides.json', { cache: 'no-store' });
@@ -30,7 +30,8 @@ export function renderEfemeride(efemeride, container, lang) {
   if (section) section.style.display = '';
   const dateEl = document.getElementById('efemerides-date');
   if (dateEl) dateEl.textContent = efemeride.date || '';
-  const content = efemeride[lang] || efemeride.ES || {};
+  // El JSON usa claves ES/EN; getLang() devuelve 'es'/'en'
+  const content = efemeride[String(lang).toUpperCase()] || efemeride.ES || {};
   const title = sanitizeHTML(content.title || '');
   const text = sanitizeHTML(content.text || '');
   const detail = sanitizeHTML(content.det || '');
@@ -49,4 +50,19 @@ export function renderEfemeride(efemeride, container, lang) {
         <p class="efemeride-detail">${detail}</p>
       </details>
     </article>`;
+}
+
+export async function initEfemerides() {
+  const container = document.getElementById('efemerides-content');
+  if (!container) return;
+  let efemeride;
+  try {
+    efemeride = getTodayEfemeride(await loadEfemerides());
+  } catch {
+    const section = container.closest('section');
+    if (section) section.style.display = 'none';
+    return;
+  }
+  renderEfemeride(efemeride, container, getLang());
+  window.addEventListener('dis:langchange', (event) => renderEfemeride(efemeride, container, event.detail.lang));
 }

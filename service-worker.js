@@ -1,7 +1,8 @@
 /* DoubleImpactStore — Service Worker
  * Estrategias:
  *  - Navegaciones: network-first; sin red, la página cacheada (también con URL limpia: /productos -> /productos.html) o /index.html.
- *  - CSV del catálogo (Google Sheets): network-first con fallback a caché.
+ *  - Datos (CSV del catálogo en Google Sheets y *.json propios): network-first con fallback a caché,
+ *    para que un cambio en los datos llegue sin cache busting.
  *  - Recursos estáticos del propio sitio: cache-first por URL exacta (los ?v= cambian con cada versión);
  *    sin red, cualquier versión cacheada del mismo archivo.
  * Nombre de caché: doubleimpact-v{CACHE_VERSION}-{ASSETS_HASH}
@@ -10,7 +11,7 @@
  * Cualquier cambio en el nombre reinstala el Service Worker y descarta la caché anterior.
  */
 const CACHE_VERSION = '2026-10-28_2103';
-const ASSETS_HASH = '36503f8a04';
+const ASSETS_HASH = 'ae07c432c7';
 const CACHE_NAME = `doubleimpact-v${CACHE_VERSION}-${ASSETS_HASH}`;
 
 const CORE_ASSETS = [
@@ -27,7 +28,7 @@ const CORE_ASSETS = [
   '/webfonts/fa-regular-400.woff2',
   '/webfonts/fa-solid-900.woff2',
   '/js/index.min.js',
-  '/js/instagram_posts.min.js',
+  '/js/instagram_posts.json',
   '/js/siglas.json',
   '/js/efemerides.json',
   '/js/console_aliases.json',
@@ -125,7 +126,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (isCatalogCSV) {
+  if (isCatalogCSV || (isOwnOrigin && url.pathname.endsWith('.json'))) {
     event.respondWith(
       fetch(request)
         .then((response) => {

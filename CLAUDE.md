@@ -38,24 +38,27 @@ No hay linter configurado. Para ver el sitio: `python scripts/serve.py` y abrir 
 Las páginas cargan solo artefactos generados por `npm run build` (`watcher.js`), versionados en git:
 - `js/index.min.js`: **bundle esbuild** de `js/index.js` + todos los módulos + `js/social.js` (ESM, autocontenido). **Cualquier cambio en `js/**/*.js` requiere `npm run build`**; si no, el sitio sigue usando el bundle anterior. `check:minification` falla si el bundle importa módulos relativos.
 - `css/style.min.css`, `css/productos.min.css` (cssnano).
-- `js/instagram_posts.min.js` lo genera `api/update_instagram.py`, no el build.
+- Los datos (`js/*.json`, incluido `js/instagram_posts.json` que genera el bot) no pasan por el build: se cargan con `fetch`.
 
 El build reescribe el `?v=<hash de contenido>` de esos assets (más font-awesome) en todos los `*.html` y `ASSETS_HASH` en `service-worker.js`. Es idempotente: sin cambios en las fuentes, no modifica nada. Después de editar fuentes: `npm run build` y commitear fuentes + artefactos.
 
 ### Flujo de arranque
 
-`js/index.js` (≤20 líneas por requisito R19, solo orquesta) en `DOMContentLoaded`: `initUI()` → `setNavActive()` → `initAnalytics()` → registra `service-worker.js` → efeméride del día → `initCatalog()` si existe `#catalog-container` (solo `productos.html`) → `initInstagramSection(getInstagramPostsData())` si existe `#instagram-root`. Las tres páginas (`index`, `productos`, `404`) usan el mismo entry point; cada módulo se activa según los elementos presentes en el DOM.
+`js/index.js` (16 líneas; R19 exige ≤20 y solo orquestar) en `DOMContentLoaded`: `initUI()` → `setNavActive()` → `initAnalytics()` → registra `service-worker.js` → `initEfemerides()` → `initCatalog()` → `initInstagramSection()`. Cada `init*` comprueba si su sección existe en el DOM y, si no, no hace nada: las cinco páginas usan el mismo entry point. No agregues lógica a `index.js`; va en el módulo correspondiente.
 
-`getInstagramPostsData` es una **función global** definida por `js/instagram_posts.min.js`, cargado como `<script>` clásico antes del módulo.
+No hay variables globales propias: los posts de Instagram se cargan con `fetch('js/instagram_posts.json')` desde `instagram.js`.
 
 ### Módulos (`js/modules/`)
 
-- `ui.js` — concentra tema, idioma, FAQ, blog, menú móvil, nav activa, scroll, offline. Las ~425 primeras líneas son el diccionario `translations = { es, en }`. i18n: atributos `data-i18n`, `data-i18n-aria`, `data-i18n-placeholder` en el HTML + `t(key)`; `setLang` emite el evento `dis:langchange` al que reaccionan catálogo, Instagram y efemérides para re-renderizar. Importa `../social.js` (`SOCIAL_LINKS`, fuente de las redes/contacto).
+- `i18n.js` + `translations.js` — idioma: `getLang`/`setLang`/`t`/`applyTranslations`; el diccionario `{ es, en }` vive en `translations.js`. En el HTML: `data-i18n`, `data-i18n-aria`, `data-i18n-placeholder`. `setLang` emite `dis:langchange`; **todo módulo que renderice texto dinámico debe escucharlo y re-renderizar** (lo hacen catálogo, Instagram, efemérides y el tooltip de WhatsApp). Toda clave nueva va en `es` y `en` (lo verifica `ui.test.js`).
+- `theme.js` — tema claro/oscuro (`getTheme`/`setTheme`/`initTheme`).
+- `blog.js` — `BLOG_ARTICLES` (ES/EN) y el modal accesible (Escape, clic fuera, devolución del foco).
+- `ui.js` — FAQ (acordeón), menú móvil, navegación activa, barra de progreso, botones flotantes, indicador offline y `initUI()`, que inicializa tema, idioma, blog y redes (`../social.js`, `SOCIAL_LINKS`).
 - `products.js` — catálogo desde Google Sheets (`GOOGLE_SHEETS_CSV_URL`, endpoint `gviz/tq?tqx=out:csv`). Parser CSV propio. La hoja real solo rotula Product/Platform/Link: el mapeo de columnas es **posicional** (`COLUMN_MAP`) con detección de encabezado si existe. `Link` es un shortcode → `https://www.instagram.com/p/{Link}/`; `Sold === '1'` = vendido. Estado de filtros en un objeto `state` a nivel de módulo.
 - `cache.js` — `localStorage` con `{data, timestamp, ttl}`; TTL catálogo 5 min (`dis_catalog_cache`).
 - `siglas.js` — detecta claves de `js/siglas.json` (`{ SIGLA: { es, en } }`) en nombres de producto; siglas de 1 carácter solo como token aislado.
-- `instagram.js` — filtra posts por consola usando `js/console_aliases.json` (substring sobre `post.title`).
-- `efemerides.js` — `js/efemerides.json`, clave `DD/MM`; si no hay entrada la sección se oculta.
+- `instagram.js` — carga `js/instagram_posts.json` y `js/console_aliases.json`, renderiza las tarjetas y filtra por consola (substring sobre `post.title`).
+- `efemerides.js` — `js/efemerides.json`, clave `DD/MM` y textos en `ES`/`EN` (mayúsculas, mientras `getLang()` devuelve minúsculas); si no hay entrada o falla la carga, la sección se oculta.
 - `analytics.js` — `ANALYTICS_CONFIG` (IDs de GTM/GA4/Cloudflare). GTM también está inyectado inline en el `<head>` de cada HTML con el mismo ID: si cambias el ID, cambia ambos (y ejecuta `npm run csp`, porque cambia el hash). Si GTM está presente, `loadGa4()` **no** carga GA4 (para no contar doble): GA4 debe configurarse como etiqueta dentro del contenedor GTM. Fallback local en `dis_analytics_events` si hay bloqueador.
 - `utils.js` — `sanitizeHTML`, `validateSearch` (máx. 100 chars), `debounce`, `sortProducts`, `handleError` (emite `dis:error`).
 
@@ -68,23 +71,23 @@ Contenido externo (CSV de Sheets, captions de Instagram) se inserta con `textCon
 `.github/workflows/update-instagram.yml` (cron cada 12 h + manual) → `api/update_instagram.py`:
 1. Lee posts de `graph.instagram.com` con `INSTAGRAM_TOKEN` (secret; sale con código 1 si falta o es inválido) y conserva solo imágenes/carruseles con `#DoubleImpactStoreWeb` (los videos se omiten).
 2. Descarga `img/IG_{id}.jpeg` y genera `img/IG_{id}_{400,800,1200}.webp` con Pillow; borra imágenes huérfanas. Si una descarga falla, omite ese post en la ejecución.
-3. Solo si cambia algún campo de `SIGNIFICANT_FIELDS` (título, descripción, imagen, link; **los likes no cuentan**): reescribe `js/instagram_posts.js` y `.min.js`, actualiza `?v=` de `instagram_posts.min.js` en **todos** los `*.html` y escribe `commit_message.txt`. `CACHE_VERSION` del Service Worker solo cambia si se agregan o eliminan posts.
+3. Solo si cambia algún campo de `SIGNIFICANT_FIELDS` (título, descripción, imagen, link; **los likes no cuentan**): reescribe `js/instagram_posts.json` y escribe `commit_message.txt`. No toca el HTML: el Service Worker sirve los `.json` con red primero. `CACHE_VERSION` del Service Worker solo cambia si se agregan o eliminan posts.
 4. El workflow hace `git add` de esas rutas, commit/push a `main` como `github-actions[bot]` y, si hubo push, dispara `deploy.yml` con `gh workflow run` (un push con `GITHUB_TOKEN` no activa otros workflows).
 
 El token nunca se imprime (`redact()`). `.github/workflows/refresh-instagram-token.yml` (días 1 y 15) lo renueva con `api/refresh_instagram_token.py` y reescribe el secret usando `GH_PAT` (PAT fine-grained con "Secrets: Read and write"); falla con un error explícito si `GH_PAT` no existe. Tests en `tests/python/` (pytest, con `monkeypatch.chdir` a un sitio temporal).
 
-Por eso el historial está lleno de commits "Se modificaron N post desde Instagram": son automáticos. No edites a mano `js/instagram_posts*.js`, las imágenes `img/IG_*` ni `CACHE_VERSION`: se sobrescriben.
+Por eso el historial está lleno de commits "Se modificaron N post desde Instagram": son automáticos. No edites a mano `js/instagram_posts.json`, las imágenes `img/IG_*` ni `CACHE_VERSION`: se sobrescriben.
 
 ### Service Worker / PWA
 
 `service-worker.js`, caché `doubleimpact-v{CACHE_VERSION}-{ASSETS_HASH}`: `CACHE_VERSION` lo escribe el bot de Instagram (cuando se agregan/eliminan posts) y `ASSETS_HASH` el build (cuando cambia CSS/JS). Cambiar cualquiera reinstala el SW y descarta la caché anterior; no los edites a mano. Un SW nuevo tarda hasta 10 min en llegar a producción (caché de 600 s de GitHub Pages, que Cloudflare respeta en el borde; el `max-age=14400` que ve el navegador no afecta al script del SW).
 - Precache (`CORE_ASSETS`): páginas, CSS, `webfonts/*.woff2`, bundle, JSON de datos, logos. Si falta alguno, `install` falla a propósito y sigue el SW anterior: al agregar o renombrar un asset del precache, actualiza la lista.
 - Navegaciones: network-first; sin red, la página cacheada (también URL limpia `/productos` → `/productos.html`) o `/index.html`, y avisa `{type:'dis-offline'}` al cliente de esa navegación (`resultingClientId`) para mostrar `#offline-indicator`.
-- CSV de Google Sheets: network-first con fallback a caché. Estáticos del propio origen: cache-first por URL exacta (incluye `?v=`); sin red, cualquier versión cacheada del archivo (`ignoreSearch`). `/cdn-cgi/` (Cloudflare) no se intercepta.
+- Datos (CSV de Google Sheets y cualquier `*.json` propio): network-first con fallback a caché, así un cambio de datos llega sin cache busting. Estáticos del propio origen: cache-first por URL exacta (incluye `?v=`); sin red, cualquier versión cacheada del archivo (`ignoreSearch`). `/cdn-cgi/` (Cloudflare) no se intercepta.
 
 ### Despliegue y seguridad
 
-La fuente de GitHub Pages es **"GitHub Actions"**: solo se publica `_site/`, que arma `scripts/build-site.js` a partir de una **lista explícita de archivos públicos** (`*.html`, `css/*.min.css`, `js/index.min.js`, `js/instagram_posts.min.js`, `js/*.json`, `img/`, `webfonts/`, `.well-known/`, `manifest.json`, `service-worker.js`, `robots.txt`, `sitemap.xml`, `CNAME`). Todo lo demás (`AGENTS*.md`, `CLAUDE.md`, `.kiro/`, `docs/`, `tests/`, `api/`, `scripts/`, fuentes sin minificar) **no** se publica. Si agregas un archivo que el sitio necesita fuera de esa lista, agrégalo a `PUBLIC` en `scripts/build-site.js`: el script falla si alguna referencia local (`src`/`href`/`srcset`, `url()` del CSS, manifest, precache del SW, imágenes de Instagram, sitemap) no existe en `_site/`.
+La fuente de GitHub Pages es **"GitHub Actions"**: solo se publica `_site/`, que arma `scripts/build-site.js` a partir de una **lista explícita de archivos públicos** (`*.html`, `css/*.min.css`, `js/index.min.js`, `js/*.json`, `img/`, `webfonts/`, `.well-known/`, `manifest.json`, `service-worker.js`, `robots.txt`, `sitemap.xml`, `CNAME`). Todo lo demás (`AGENTS*.md`, `CLAUDE.md`, `.kiro/`, `docs/`, `tests/`, `api/`, `scripts/`, fuentes sin minificar) **no** se publica. Si agregas un archivo que el sitio necesita fuera de esa lista, agrégalo a `PUBLIC` en `scripts/build-site.js`: el script falla si alguna referencia local (`src`/`href`/`srcset`, `url()` del CSS, manifest, precache del SW, imágenes de Instagram, sitemap) no existe en `_site/`.
 
 Flujo: push a `main` → `ci.yml` (build reproducible con `git diff --exit-code`, checks, Vitest, pytest, `npm run site`, E2E) → si pasa, `deploy.yml` (vía `workflow_run`) publica. El bot de Instagram dispara `deploy.yml` directamente. También se puede lanzar a mano (`workflow_dispatch`).
 

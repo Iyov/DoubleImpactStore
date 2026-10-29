@@ -35,7 +35,7 @@ graph TD
     SW <-->|cache| CacheAPI["Cache API (browser)"]
     GHA["GitHub Actions\n(cron 12h)"] -->|ejecuta| PY["Instagram_Updater\napi/update_instagram.py"]
     PY -->|Instaloader + Pillow| IG["Instagram Graph API\n(hashtag #DoubleImpactStoreWeb)"]
-    PY -->|actualiza| JSFiles["js/instagram_posts.min.js\nservice-worker.js"]
+    PY -->|actualiza| JSFiles["js/instagram_posts.json\nservice-worker.js"]
     Browser -->|eventos| GTM["Google Tag Manager"]
     GTM --> GA4["Google Analytics 4"]
     Browser --> CFAnalytics["Cloudflare Analytics"]
@@ -48,7 +48,7 @@ graph TD
 2. **Progressive Enhancement**: el sitio es funcional sin JavaScript habilitado (contenido en HTML estático), y JavaScript añade interactividad.
 3. **Cache-first con versioned invalidation**: el Service Worker sirve todos los recursos desde caché y se auto-invalida al cambiar el nombre de versión.
 4. **Módulos ES desacoplados**: cada módulo JS tiene una única responsabilidad. `index.js` solo orquesta; no contiene lógica de negocio.
-5. **Multilenguaje en runtime**: los textos de la interfaz se almacenan como objetos de traducción en `ui.js` y se aplican dinámicamente; no se requieren páginas duplicadas.
+5. **Multilenguaje en runtime**: los textos de la interfaz se almacenan como objetos de traducción en `translations.js` (gestionados por `i18n.js`) y se aplican dinámicamente; no se requieren páginas duplicadas.
 
 ---
 
@@ -86,13 +86,17 @@ graph TD
 │   ├── siglas.json                # Diccionario de siglas (≥ 40 entradas)
 │   ├── efemerides.json            # Efemérides gaming por fecha
 │   ├── console_aliases.json       # Aliases de consolas para filtros de Instagram
-│   ├── instagram_posts.js         # Posts de Instagram (generado por Instagram_Updater)
+│   ├── instagram_posts.json       # Posts de Instagram (generado por Instagram_Updater, cargado con fetch)
 │   └── modules/
 │       ├── logger.js              # Control de logs por ambiente
 │       ├── cache.js               # Sistema de caché con localStorage + TTL
 │       ├── siglas.js              # Carga, detección y renderizado de siglas
 │       ├── utils.js               # sanitize, validate, sort, manejo de errores
-│       ├── ui.js                  # Tema, idioma, traducciones ES/EN, FAQ, blog, menú
+│       ├── translations.js        # Diccionario de traducciones ES/EN
+│       ├── i18n.js                # Idioma: getLang/setLang/t/applyTranslations
+│       ├── theme.js               # Tema claro/oscuro
+│       ├── blog.js                # Artículos del blog y modal
+│       ├── ui.js                  # FAQ, menú, nav activa, scroll, botones flotantes, offline
 │       ├── products.js            # Catálogo: tabla, filtros, paginación, modal
 │       ├── instagram.js           # Posts y filtros por consola
 │       ├── efemerides.js          # Efeméride del día
@@ -148,23 +152,26 @@ export function sortProducts(products: Product[], field: string, asc: boolean): 
 export function handleError(context: string, err: Error): void
 ```
 
-#### `ui.js`
+#### `theme.js`, `i18n.js`, `blog.js` y `ui.js`
 
 ```javascript
-// Tema
+// theme.js — Tema
 export function initTheme(): void
 export function setTheme(theme: 'dark' | 'light'): void
 export function getTheme(): 'dark' | 'light'
 
-// Idioma y traducciones
+// i18n.js — Idioma y traducciones (diccionario en translations.js)
 export function initLang(): void
 export function setLang(lang: 'es' | 'en'): void
 export function getLang(): 'es' | 'en'
 export function t(key: string): string   // Retorna traducción en idioma activo
 
-// Componentes UI
-export function initFAQ(): void          // Accordion FAQ
+// blog.js
 export function initBlogModals(): void   // Modales de blog
+
+// ui.js — Componentes UI
+export function initUI(): void           // Inicializa tema, idioma, blog y componentes
+export function initFAQ(): void          // Accordion FAQ
 export function initMobileMenu(): void   // Menú hamburguesa
 export function setNavActive(path: string): void
 
@@ -366,14 +373,11 @@ La sección `#efemerides` debe tener estructura HTML completa en `index.html`. E
 </div>
 ```
 
-**Flujo de carga en `js/index.js`:**
+**Flujo de carga:** `js/index.js` llama a `initEfemerides()` dentro de `DOMContentLoaded`; el módulo hace:
 ```javascript
-// Dentro de DOMContentLoaded — obligatorio
-import { loadEfemerides, getTodayEfemeride, renderEfemeride } from './modules/efemerides.js';
-
-const efemeridesData = await loadEfemerides();           // fetch('./js/efemerides.json')
-const efemeride = getTodayEfemeride(efemeridesData);     // busca por "DD/MM"
-renderEfemeride(efemeride, document.getElementById('efemerides-content'), getLang());
+const efemeride = getTodayEfemeride(await loadEfemerides());   // fetch('./js/efemerides.json'), busca por "DD/MM"
+renderEfemeride(efemeride, container, getLang());              // usa efemeride.ES / efemeride.EN
+window.addEventListener('dis:langchange', (e) => renderEfemeride(efemeride, container, e.detail.lang));
 ```
 
 **Lógica de `getTodayEfemeride`:**
@@ -551,9 +555,8 @@ sequenceDiagram
     loop Por cada imagen
         PY->>PY: Generar variantes WebP (400, 800, 1200px) con Pillow
     end
-    PY->>FS: Escribir js/instagram_posts.min.js
-    PY->>FS: Actualizar version en index.html
-    PY->>FS: Actualizar manifiesto en service-worker.js
+    PY->>FS: Escribir js/instagram_posts.json
+    PY->>FS: Actualizar CACHE_VERSION en service-worker.js (solo si se agregan/eliminan posts)
     GHA->>FS: git commit + push (rama principal)
 ```
 
@@ -663,9 +666,9 @@ Entradas reales del archivo (39 siglas definidas):
 }
 ```
 
-### InstagramPost (`js/instagram_posts.js`)
+### InstagramPost (`js/instagram_posts.json`)
 
-El archivo exporta una constante `INSTAGRAM_POSTS_DATA` (array) y una función `getInstagramPostsData()`. La estructura real de cada post es:
+El archivo es un array JSON de posts que `instagram.js` carga con `fetch` (el Service Worker lo sirve con red primero). La estructura real de cada post es:
 
 ```typescript
 interface InstagramPost {
@@ -680,13 +683,10 @@ interface InstagramPost {
 }
 ```
 
-Estructura del archivo JS:
+Estructura del archivo:
 
-```javascript
-// ========== DATOS DE POSTS DE INSTAGRAM AUTOMATIZADOS ==========
-// Última actualización: YYYY-MM-DD HH:MM:SS
-
-const INSTAGRAM_POSTS_DATA = [
+```json
+[
   {
     "id": "ig_auto_18101525171223871",
     "image": "img/IG_18101525171223871.jpeg",
@@ -697,11 +697,7 @@ const INSTAGRAM_POSTS_DATA = [
     "date": "2026-08-07",
     "likes": 24
   }
-];
-
-function getInstagramPostsData() {
-  return INSTAGRAM_POSTS_DATA;
-}
+]
 ```
 
 **Notas de implementación para `instagram.js`:**
