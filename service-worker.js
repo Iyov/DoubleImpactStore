@@ -11,7 +11,7 @@
  * Cualquier cambio en el nombre reinstala el Service Worker y descarta la caché anterior.
  */
 const CACHE_VERSION = '2026-10-28_2103';
-const ASSETS_HASH = 'ae07c432c7';
+const ASSETS_HASH = '84a25ce6b1';
 const CACHE_NAME = `doubleimpact-v${CACHE_VERSION}-${ASSETS_HASH}`;
 
 const CORE_ASSETS = [
@@ -34,7 +34,9 @@ const CORE_ASSETS = [
   '/js/console_aliases.json',
   '/manifest.json',
   '/img/LogoDoubleImpactStore_150.png',
+  '/img/LogoDoubleImpactStore_150.webp',
   '/img/LogoDoubleImpactStore_250.png',
+  '/img/LogoDoubleImpactStore_250.webp',
   '/img/LogoDoubleImpactStore_500.png',
   '/img/placeholder-post.webp'
 ];

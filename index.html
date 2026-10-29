@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="dark">
 <head>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-pyc5vo5EKUhGw2MIAPmKILQAD8alvxN0GMyOU47Rwqw=' https://*.googletagmanager.com https://tagmanager.google.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; font-src 'self' data:; connect-src 'self' https://docs.google.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cloudflareinsights.com; frame-src https://www.googletagmanager.com https://tagmanager.google.com; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-pyc5vo5EKUhGw2MIAPmKILQAD8alvxN0GMyOU47Rwqw=' 'sha256-wjfFX2SSw77DlLKum/PrDBQOiXZWJ5E3mUw8phSAmOA=' https://*.googletagmanager.com https://tagmanager.google.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; font-src 'self' data:; connect-src 'self' https://docs.google.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cloudflareinsights.com; frame-src https://www.googletagmanager.com https://tagmanager.google.com; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <!-- Tema e idioma guardados antes del primer pintado (requisito 3.5); i18n.js quita i18n-pending -->
+  <script>(function(){try{var d=document.documentElement,t=localStorage.getItem('dis_theme'),l=localStorage.getItem('dis_lang');if(t==='light')d.setAttribute('data-theme','light');if(l==='en'){d.lang='en';d.classList.add('i18n-pending');setTimeout(function(){d.classList.remove('i18n-pending')},3000)}}catch(e){}})();</script>
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -32,7 +34,7 @@
   <link rel="icon" href="img/LogoDoubleImpactStore_150.png" type="image/png" />
   <link rel="apple-touch-icon" href="img/LogoDoubleImpactStore_250.png" />
   <link rel="stylesheet" href="css/font-awesome_6.5.1_all.min.css?v=23a8a9082f" />
-  <link rel="stylesheet" href="css/style.min.css?v=84c70a8245" />
+  <link rel="stylesheet" href="css/style.min.css?v=a19a2747ef" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -86,6 +88,8 @@
           "Venta de controles playstation",
           "Venta de controles nintendo",
           "diagnóstico y reparación de consolas retro",
+          "limpieza de conectores de consolas retro",
+          "cambio de condensadores (recapping) de consolas retro",
           "cambio de lectores de playstation",
           "pulido profesional de discos"
         ]
@@ -178,7 +182,10 @@
   <header class="site-header">
     <div class="container header-inner">
       <a class="brand" href="index.html" aria-label="DoubleImpactStore — Volver al inicio">
-        <img class="brand-logo" src="img/LogoDoubleImpactStore_150.png" alt="DoubleImpactStore" width="40" height="40">
+        <picture>
+          <source type="image/webp" srcset="img/LogoDoubleImpactStore_150.webp">
+          <img class="brand-logo" src="img/LogoDoubleImpactStore_150.png" alt="DoubleImpactStore" width="40" height="40">
+        </picture>
       </a>
       <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="main-nav">
         <i class="fa-solid fa-bars" aria-hidden="true"></i>
@@ -219,7 +226,10 @@
             <a class="btn btn--secondary" href="index.html#contacto" data-track="hero_contact"><i class="fa-solid fa-envelope" aria-hidden="true"></i> <span data-i18n="hero.cta_contact">Contacto</span></a>
           </div>
         </div>
-        <img class="hero-logo" src="img/LogoDoubleImpactStore_250.png" alt="Logo de DoubleImpactStore" width="250" height="250" fetchpriority="high">
+        <picture>
+          <source type="image/webp" srcset="img/LogoDoubleImpactStore_250.webp">
+          <img class="hero-logo" src="img/LogoDoubleImpactStore_250.png" alt="Logo de DoubleImpactStore" width="250" height="250" fetchpriority="high">
+        </picture>
       </div>
     </section>
 
@@ -465,7 +475,10 @@
   <footer class="site-footer">
     <div class="container footer-grid">
       <div class="footer-brand">
-        <img src="img/LogoDoubleImpactStore_150.png" alt="Logo de DoubleImpactStore" width="150" height="150" />
+        <picture>
+          <source type="image/webp" srcset="img/LogoDoubleImpactStore_150.webp">
+          <img src="img/LogoDoubleImpactStore_150.png" alt="Logo de DoubleImpactStore" width="150" height="150" loading="lazy">
+        </picture>
         <p class="footer-tagline" data-i18n="footer.tagline">Videojuegos retro originales y coleccionables.</p>
         <p class="footer-location" data-i18n="footer.location">Persa Bio Bio · Bio Bio 654, Local 58 · Sábados, domingos y festivos, 11:00–18:00 hrs.</p>
       </div>
@@ -496,14 +509,14 @@
     </div>
   </div>
 
-  <a class="whatsapp-float" id="whatsapp-float" href="https://wa.me/56967691585" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" data-track="whatsapp_float">
+  <a class="whatsapp-float" id="whatsapp-float" href="https://wa.me/56967691585" target="_blank" rel="noopener noreferrer" aria-label="Escríbenos por WhatsApp (se abre en una pestaña nueva)" data-i18n-aria="whatsapp.aria" data-track="whatsapp_float">
     <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
     <span class="whatsapp-tooltip" data-i18n="whatsapp.tooltip">Comunícate con nosotros</span>
   </a>
-  <button type="button" id="back-to-top" class="back-to-top" aria-label="Volver arriba">
+  <button type="button" id="back-to-top" class="back-to-top" aria-label="Volver al inicio" data-i18n-aria="controls.back_to_top">
     <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
   </button>
 
-  <script type="module" src="js/index.min.js?v=a20cc1c706"></script>
+  <script type="module" src="js/index.min.js?v=0fa069857a"></script>
 </body>
 </html>

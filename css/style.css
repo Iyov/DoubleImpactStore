@@ -97,6 +97,12 @@
    .skip-link permite saltar directo al contenido (WCAG 2.4.1).
    El atributo [hidden] SIEMPRE oculta (incluye componentes con
    display propio como .offline-indicator o .modal). */
+/* Idioma guardado distinto del HTML: los textos traducibles no se muestran
+   en español antes de traducirse (lo activa el script inline del <head>). */
+.i18n-pending [data-i18n] {
+  visibility: hidden;
+}
+
 [hidden] {
   display: none !important;
 }

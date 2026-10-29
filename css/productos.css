@@ -334,6 +334,11 @@
   margin: 0;
 }
 
+/* Siglas visibles bajo el nombre del producto: solo en móvil (sin hover) */
+.siglas-mobile {
+  display: none;
+}
+
 .product-detail-siglas-title {
   margin: 20px 0 10px;
   font-size: 1.05rem;
@@ -419,6 +424,17 @@
 
   .catalog-table tbody td.product-name::before {
     content: attr(data-label);
+  }
+
+  .siglas-mobile {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    font-size: 0.8rem;
+  }
+
+  .siglas-mobile .sigla-item {
+    padding: 4px 10px;
   }
 
   .pagination {

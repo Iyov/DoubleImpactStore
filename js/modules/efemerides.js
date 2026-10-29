@@ -20,6 +20,14 @@ export function getTodayEfemeride(data, date = new Date()) {
   return data.efemerides.find((entry) => entry.date === key) || null;
 }
 
+// "18/08" -> "18 de agosto" (es) / "August 18" (en)
+export function formatEfemerideDate(ddmm, lang) {
+  const [day, month] = String(ddmm || '').split('/').map(Number);
+  if (!day || !month) return ddmm || '';
+  const locale = lang === 'en' ? 'en-US' : 'es-CL';
+  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' }).format(new Date(2000, month - 1, day));
+}
+
 export function renderEfemeride(efemeride, container, lang) {
   if (!container) return;
   const section = container.closest('section');
@@ -29,7 +37,7 @@ export function renderEfemeride(efemeride, container, lang) {
   }
   if (section) section.style.display = '';
   const dateEl = document.getElementById('efemerides-date');
-  if (dateEl) dateEl.textContent = efemeride.date || '';
+  if (dateEl) dateEl.textContent = formatEfemerideDate(efemeride.date, lang);
   // El JSON usa claves ES/EN; getLang() devuelve 'es'/'en'
   const content = efemeride[String(lang).toUpperCase()] || efemeride.ES || {};
   const title = sanitizeHTML(content.title || '');

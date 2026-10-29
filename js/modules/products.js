@@ -186,7 +186,14 @@ export function renderProductTable(products, container) {
     nameTd.className = 'product-name';
     nameTd.textContent = product.name;
     const siglas = detectSiglas(product.name, siglasDict);
-    if (siglas.length > 0) renderSiglasTooltips(nameTd, siglas, siglasDict, currentLang);
+    if (siglas.length > 0) {
+      renderSiglasTooltips(nameTd, siglas, siglasDict, currentLang);
+      // En móvil no hay hover: la lista de siglas se muestra visible (solo con CSS ≤768px)
+      const mobileSiglas = document.createElement('div');
+      mobileSiglas.className = 'siglas-mobile';
+      renderSiglasSection(mobileSiglas, siglas, siglasDict, currentLang);
+      nameTd.appendChild(mobileSiglas);
+    }
 
     const platformTd = document.createElement('td');
     platformTd.setAttribute('data-label', t('products.table_platform'));
@@ -418,6 +425,14 @@ function bindControls() {
       const [field, dir] = sort.value.split(':');
       state.sortField = field || 'num';
       state.sortAsc = dir !== 'desc';
+      state.page = 1;
+      renderCatalog();
+    });
+  }
+  const perPage = document.querySelector('#catalog-per-page');
+  if (perPage) {
+    perPage.addEventListener('change', () => {
+      state.perPage = Number(perPage.value) || DEFAULT_PER_PAGE;
       state.page = 1;
       renderCatalog();
     });

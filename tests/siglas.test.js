@@ -4,7 +4,7 @@ import fc from 'fast-check';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { detectSiglas } from '../js/modules/siglas.js';
+import { detectSiglas, renderSiglasTooltips } from '../js/modules/siglas.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -50,6 +50,31 @@ describe('siglas.js', () => {
     expect(detectSiglas('Nintendo GameCube', testDict)).toEqual([]);
     expect(detectSiglas(null, testDict)).toEqual([]);
     expect(detectSiglas('MM C/M', null)).toEqual([]);
+  });
+
+  it('no detecta una sigla corta que solo aparece dentro de una más larga', () => {
+    const dict = { CIB: { es: 'Caja, Juego, Manual', en: 'Box, Game, Manual' }, 'CIB+': testDict['CIB+'] };
+    expect(detectSiglas('Metal Gear Solid CIB+', dict)).toEqual(['CIB+']);
+    expect(detectSiglas('Pack CIB+ y Zelda CIB', dict)).toEqual(['CIB+', 'CIB']);
+  });
+
+  it('no detecta siglas dentro de palabras (casos reales del catálogo)', () => {
+    const dict = JSON.parse(fs.readFileSync(path.join(ROOT, 'js', 'siglas.json'), 'utf8'));
+    expect(detectSiglas('Gran Turismo 2', dict)).toEqual([]);
+    expect(detectSiglas('Romance IV', dict)).not.toContain('CE');
+    expect(detectSiglas('Rebel Raiders Operation Nighthawk', dict)).not.toContain('GH');
+    expect(detectSiglas('Heroes V (MM-Falta disco 1)', dict)).toEqual(['MM']);
+    expect(detectSiglas('Romance IV (BL-CIB)', dict)).toEqual(expect.arrayContaining(['BL', 'CIB']));
+    expect(detectSiglas('Álbum PAL', dict)).toEqual(['PAL']);
+  });
+
+  it('renderSiglasTooltips sanitiza todo el texto, no solo las siglas', () => {
+    const el = document.createElement('td');
+    el.textContent = '<img src=x onerror="alert(1)"> Zelda CIB+';
+    renderSiglasTooltips(el, ['CIB+'], testDict, 'es');
+    expect(el.querySelector('img')).toBeNull();
+    expect(el.textContent).toContain('<img src=x onerror="alert(1)"> Zelda CIB+');
+    expect(el.querySelectorAll('.sigla-tooltip')).toHaveLength(1);
   });
 
   it('detecta coincidencias sin importar mayúsculas', () => {

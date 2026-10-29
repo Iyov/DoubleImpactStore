@@ -4,7 +4,7 @@ import fc from 'fast-check';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getTodayEfemeride, renderEfemeride } from '../js/modules/efemerides.js';
+import { getTodayEfemeride, renderEfemeride, formatEfemerideDate } from '../js/modules/efemerides.js';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -57,6 +57,13 @@ describe('efemerides.js', () => {
     );
     const broken = texts.filter((text) => /\\u[0-9a-fA-F]{4}/.test(text));
     expect(broken).toEqual([]);
+  });
+
+  it('formatea la fecha DD/MM en el idioma activo', () => {
+    expect(formatEfemerideDate('18/08', 'es')).toBe('18 de agosto');
+    expect(formatEfemerideDate('18/08', 'en')).toBe('August 18');
+    expect(formatEfemerideDate('29/02', 'es')).toBe('29 de febrero');
+    expect(formatEfemerideDate('', 'es')).toBe('');
   });
 
   it('renderEfemeride usa el idioma pedido (claves ES/EN del JSON con lang en minúscula)', () => {

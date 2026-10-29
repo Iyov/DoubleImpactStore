@@ -11,50 +11,55 @@ export async function loadSiglas() {
   return res.json();
 }
 
+// Una sigla solo cuenta como token: sin letra ni número pegado antes o después
+// (si no, "Turismo" contendría MO y "Romance" CE).
+function siglaPattern(keys) {
+  const alternatives = [...keys].sort((a, b) => b.length - a.length).map(escapeRegex).join('|');
+  return new RegExp(`(?<![\\p{L}\\p{N}])(?:${alternatives})(?![\\p{L}\\p{N}])`, 'giu');
+}
+
+// Posiciones [inicio, fin) de cada aparición de la sigla en el texto
+function occurrences(text, key) {
+  return [...text.matchAll(siglaPattern([key]))].map((m) => [m.index, m.index + m[0].length]);
+}
+
 export function detectSiglas(productName, dict) {
-  const upper = String(productName == null ? '' : productName).toUpperCase();
+  const text = String(productName == null ? '' : productName);
   const keys = Object.keys(dict || {}).sort((a, b) => b.length - a.length);
-  const found = new Set();
+  const found = [];
+  const covered = [];
   for (const key of keys) {
-    const needle = key.toUpperCase();
-    if (needle.length === 1) {
-      // Siglas de 1 carácter (M, L, S, K, C) solo como token aislado
-      if (new RegExp(`(?:^|[^A-Z0-9])${escapeRegex(needle)}(?:[^A-Z0-9]|$)`, 'u').test(upper)) {
-        found.add(key);
-      }
-    } else if (upper.includes(needle)) {
-      found.add(key);
+    const ranges = occurrences(text, key);
+    // Una sigla corta no cuenta si solo aparece dentro de una más larga ya detectada (CIB dentro de CIB+)
+    const standalone = ranges.some(([start, end]) => !covered.some(([s, e]) => start >= s && end <= e));
+    if (standalone) {
+      found.push(key);
+      covered.push(...ranges);
     }
   }
-  return [...found];
+  return found;
 }
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// Todo el texto (viene de Google Sheets) se sanitiza: tanto las siglas como lo que hay entre ellas
 function wrapSiglasInText(text, siglas, dict, lang) {
-  if (!siglas || siglas.length === 0) return sanitizeHTML(text);
-  const multi = siglas
-    .filter((k) => k.length > 1)
-    .map(escapeRegex)
-    .join('|');
-  const single = siglas
-    .filter((k) => k.length === 1)
-    .map(escapeRegex)
-    .join('|');
-  const alternatives = [];
-  if (multi) alternatives.push(`(${multi})`);
-  if (single) alternatives.push(`\\b(${single})\\b`);
-  const pattern = new RegExp(alternatives.join('|'), 'gi');
-  const keys = [...siglas].sort((a, b) => b.length - a.length);
-  return String(text).replace(pattern, (match) => {
-    const canonical = keys.find((k) => k.toLowerCase() === match.toLowerCase()) || match;
+  const source = String(text);
+  if (!siglas || siglas.length === 0) return sanitizeHTML(source);
+  let html = '';
+  let last = 0;
+  for (const match of source.matchAll(siglaPattern(siglas))) {
+    const canonical = siglas.find((k) => k.toLowerCase() === match[0].toLowerCase()) || match[0];
     const def = (dict[canonical] && dict[canonical][lang]) || (dict[canonical] && dict[canonical].es) || '';
     const safeKey = sanitizeHTML(canonical);
     const safeDef = sanitizeHTML(def);
-    return `<span class="sigla-tooltip" tabindex="0" role="button" data-sigla="${safeKey}" aria-label="${safeKey}: ${safeDef}">${sanitizeHTML(match)}<span class="sigla-tooltip__text" role="tooltip">${safeKey}: ${safeDef}</span></span>`;
-  });
+    html += sanitizeHTML(source.slice(last, match.index));
+    html += `<span class="sigla-tooltip" tabindex="0" role="button" data-sigla="${safeKey}" aria-label="${safeKey}: ${safeDef}">${sanitizeHTML(match[0])}<span class="sigla-tooltip__text" role="tooltip">${safeKey}: ${safeDef}</span></span>`;
+    last = match.index + match[0].length;
+  }
+  return html + sanitizeHTML(source.slice(last));
 }
 
 export function renderSiglasTooltips(el, siglas, dict, lang) {

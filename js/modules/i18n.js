@@ -32,6 +32,8 @@ export function applyTranslations() {
   document.querySelectorAll('[data-i18n-aria]').forEach((el) => {
     el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
   });
+  // El script inline del <head> oculta los textos hasta que estén traducidos
+  document.documentElement.classList.remove('i18n-pending');
 }
 
 export function setLang(lang) {

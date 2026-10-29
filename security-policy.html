@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="dark">
 <head>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-pyc5vo5EKUhGw2MIAPmKILQAD8alvxN0GMyOU47Rwqw=' https://*.googletagmanager.com https://tagmanager.google.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; font-src 'self' data:; connect-src 'self' https://docs.google.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cloudflareinsights.com; frame-src https://www.googletagmanager.com https://tagmanager.google.com; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-pyc5vo5EKUhGw2MIAPmKILQAD8alvxN0GMyOU47Rwqw=' 'sha256-wjfFX2SSw77DlLKum/PrDBQOiXZWJ5E3mUw8phSAmOA=' https://*.googletagmanager.com https://tagmanager.google.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.google-analytics.com https://*.googletagmanager.com; font-src 'self' data:; connect-src 'self' https://docs.google.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cloudflareinsights.com; frame-src https://www.googletagmanager.com https://tagmanager.google.com; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <!-- Tema e idioma guardados antes del primer pintado (requisito 3.5); i18n.js quita i18n-pending -->
+  <script>(function(){try{var d=document.documentElement,t=localStorage.getItem('dis_theme'),l=localStorage.getItem('dis_lang');if(t==='light')d.setAttribute('data-theme','light');if(l==='en'){d.lang='en';d.classList.add('i18n-pending');setTimeout(function(){d.classList.remove('i18n-pending')},3000)}}catch(e){}})();</script>
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -14,6 +16,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Política de seguridad — DoubleImpactStore</title>
   <meta name="description" content="Política de seguridad de DoubleImpactStore, nueva tienda de videojuegos retro en Persa Bio Bio, Bio Bio 654, Local 58, Santiago.">
+  <meta name="keywords" content="DoubleImpactStore, política de seguridad, divulgación responsable, vulnerabilidades, security.txt">
   <link rel="canonical" href="https://doubleimpactstore.cl/security-policy">
   <meta property="og:title" content="Política de seguridad — DoubleImpactStore">
   <meta property="og:description" content="Política de seguridad de DoubleImpactStore, nueva tienda de videojuegos retro en Persa Bio Bio, Bio Bio 654, Local 58, Santiago.">
@@ -26,10 +29,11 @@
   <meta name="twitter:site" content="@DoubleImpactSpA">
   <meta name="twitter:title" content="Política de seguridad — DoubleImpactStore">
   <meta name="twitter:description" content="Política de seguridad de DoubleImpactStore, nueva tienda de videojuegos retro en Persa Bio Bio, Bio Bio 654, Local 58, Santiago.">
+  <meta name="twitter:image" content="https://doubleimpactstore.cl/img/LogoDoubleImpactStore_500.png">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="img/LogoDoubleImpactStore_150.png" type="image/png">
   <link rel="stylesheet" href="css/font-awesome_6.5.1_all.min.css?v=23a8a9082f">
-  <link rel="stylesheet" href="css/style.min.css?v=84c70a8245">
+  <link rel="stylesheet" href="css/style.min.css?v=a19a2747ef">
 </head>
 <body>
   <!-- Google Tag Manager (noscript) -->
@@ -41,7 +45,10 @@
   <header class="site-header">
     <div class="container header-inner">
       <a class="brand" href="index.html" aria-label="DoubleImpactStore — Volver al inicio">
-        <img class="brand-logo" src="img/LogoDoubleImpactStore_150.png" alt="DoubleImpactStore" width="150" height="150">
+        <picture>
+          <source type="image/webp" srcset="img/LogoDoubleImpactStore_150.webp">
+          <img class="brand-logo" src="img/LogoDoubleImpactStore_150.png" alt="DoubleImpactStore" width="40" height="40">
+        </picture>
       </a>
       <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="main-nav">
         <i class="fa-solid fa-bars" aria-hidden="true"></i>
@@ -66,8 +73,8 @@
   </header>
 
   <main id="main">
-    <div class="container content-page">
-      <h1 class="page-title" data-i18n="security.title">Política de seguridad</h1>
+    <article class="container content-page" aria-labelledby="page-title">
+      <h1 id="page-title" class="page-title" data-i18n="security.title">Política de seguridad</h1>
       <div class="security-note">
         <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
         <p data-i18n="security.text1">Agradecemos la divulgación responsable de vulnerabilidades.</p>
@@ -81,13 +88,16 @@
         <li>No explotes la vulnerabilidad para beneficio personal o de terceros.</li>
       </ul>
       <p><a href=".well-known/security.txt">security.txt</a> · <a href="security-acknowledgments.html" data-i18n="security.acknowledgments_title">Agradecimientos de seguridad</a></p>
-    </div>
+    </article>
   </main>
 
   <footer class="site-footer">
     <div class="container footer-grid">
       <div class="footer-brand">
-        <img src="img/LogoDoubleImpactStore_150.png" alt="Logo de DoubleImpactStore" width="40" height="40">
+        <picture>
+          <source type="image/webp" srcset="img/LogoDoubleImpactStore_150.webp">
+          <img src="img/LogoDoubleImpactStore_150.png" alt="Logo de DoubleImpactStore" width="150" height="150" loading="lazy">
+        </picture>
         <p class="footer-tagline" data-i18n="footer.tagline">Videojuegos retro originales y coleccionables.</p>
         <p class="footer-location" data-i18n="footer.location">Persa Bio Bio · Bio Bio 654, Local 58 · Sábados, domingos y festivos, 11:00–18:00 hrs.</p>
       </div>
@@ -110,6 +120,6 @@
     </div>
   </footer>
 
-  <script type="module" src="js/index.min.js?v=a20cc1c706"></script>
+  <script type="module" src="js/index.min.js?v=0fa069857a"></script>
 </body>
 </html>
