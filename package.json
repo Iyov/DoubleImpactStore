@@ -32,10 +32,10 @@
     "@playwright/test": "^1.49.0",
     "@vitest/coverage-v8": "^3.0.0",
     "cssnano": "^8.0.6",
+    "esbuild": "^0.25.10",
     "fast-check": "^3.22.0",
     "jsdom": "^26.0.0",
     "postcss": "^8.5.26",
-    "terser": "^5.36.0",
     "vitest": "^3.0.0"
   }
 }

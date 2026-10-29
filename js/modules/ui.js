@@ -713,6 +713,8 @@ function initOfflineIndicator() {
     navigator.serviceWorker.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'dis-offline') show();
     });
+    // addEventListener no habilita la cola de mensajes por sí solo (onmessage sí)
+    navigator.serviceWorker.startMessages();
   }
 }
 

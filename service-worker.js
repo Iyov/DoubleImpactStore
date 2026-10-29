@@ -1,9 +1,17 @@
 /* DoubleImpactStore — Service Worker
- * Estrategia: cache-first para recursos estáticos, network-first con fallback a caché para el CSV del catálogo.
- * Nombre de caché: doubleimpact-v{YYYY-MM-DD} — la versión la actualiza api/update_instagram.py automáticamente.
+ * Estrategias:
+ *  - Navegaciones: network-first; sin red, la página cacheada (también con URL limpia: /productos -> /productos.html) o /index.html.
+ *  - CSV del catálogo (Google Sheets): network-first con fallback a caché.
+ *  - Recursos estáticos del propio sitio: cache-first por URL exacta (los ?v= cambian con cada versión);
+ *    sin red, cualquier versión cacheada del mismo archivo.
+ * Nombre de caché: doubleimpact-v{CACHE_VERSION}-{ASSETS_HASH}
+ *  - CACHE_VERSION lo actualiza api/update_instagram.py cuando cambian las imágenes de Instagram.
+ *  - ASSETS_HASH lo actualiza `npm run build` (watcher.js) cuando cambia el CSS o el JS.
+ * Cualquier cambio en el nombre reinstala el Service Worker y descarta la caché anterior.
  */
 const CACHE_VERSION = '2026-10-28_2103';
-const CACHE_NAME = `doubleimpact-v${CACHE_VERSION}`;
+const ASSETS_HASH = 'f457612495';
+const CACHE_NAME = `doubleimpact-v${CACHE_VERSION}-${ASSETS_HASH}`;
 
 const CORE_ASSETS = [
   '/',
@@ -15,6 +23,9 @@ const CORE_ASSETS = [
   '/css/style.min.css',
   '/css/productos.min.css',
   '/css/font-awesome_6.5.1_all.min.css',
+  '/webfonts/fa-brands-400.woff2',
+  '/webfonts/fa-regular-400.woff2',
+  '/webfonts/fa-solid-900.woff2',
   '/js/index.min.js',
   '/js/instagram_posts.min.js',
   '/js/siglas.json',
@@ -23,16 +34,17 @@ const CORE_ASSETS = [
   '/manifest.json',
   '/img/LogoDoubleImpactStore_150.png',
   '/img/LogoDoubleImpactStore_250.png',
-  '/img/LogoDoubleImpactStore_500.png'
+  '/img/LogoDoubleImpactStore_500.png',
+  '/img/placeholder-post.webp'
 ];
 
 self.addEventListener('install', (event) => {
+  // Si falla el precache, la instalación falla y el Service Worker anterior sigue activo
   event.waitUntil(
     caches
       .open(CACHE_NAME)
       .then((cache) => cache.addAll(CORE_ASSETS))
       .then(() => self.skipWaiting())
-      .catch(() => self.skipWaiting())
   );
 });
 
@@ -53,68 +65,76 @@ self.addEventListener('message', (event) => {
   }
 });
 
+function notifyOffline() {
+  self.clients
+    .matchAll({ includeUncontrolled: true })
+    .then((clients) => clients.forEach((client) => client.postMessage({ type: 'dis-offline' })));
+}
+
+function cacheCopy(request, response) {
+  if (!response.ok) return;
+  const copy = response.clone();
+  caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+}
+
+// La página de una navegación todavía no existe mientras se responde: se espera
+// a que aparezca su cliente para avisarle que se sirvió sin conexión.
+async function notifyNavigationOffline(clientId) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const client = clientId && (await self.clients.get(clientId));
+    if (client) {
+      client.postMessage({ type: 'dis-offline' });
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+}
+
+async function offlineNavigation(request) {
+  const url = new URL(request.url);
+  const cached =
+    (await caches.match(request, { ignoreSearch: true })) ||
+    (!/\.[a-z0-9]+$/i.test(url.pathname) && (await caches.match(`${url.pathname.replace(/\/$/, '')}.html`))) ||
+    (await caches.match('/index.html'));
+  return cached || Response.error();
+}
+
 self.addEventListener('fetch', (event) => {
   const request = event.request;
-  const url = new URL(request.url);
-
-  // Solo manejar el propio origen y el catálogo de Google Sheets
-  const isOwnOrigin = url.origin === self.location.origin;
-  const isCatalogCSV = url.hostname.includes('docs.google.com') && request.url.includes('gviz/tq');
-
-  if (!isOwnOrigin && !isCatalogCSV) return;
-
   if (request.method !== 'GET') return;
 
-  const isNavigation = request.mode === 'navigate';
+  const url = new URL(request.url);
+  const isOwnOrigin = url.origin === self.location.origin;
+  const isCatalogCSV = url.hostname === 'docs.google.com' && url.pathname.includes('/gviz/tq');
 
-  // Navegaciones: red primero, caché como fallback, offline como último recurso
-  if (isNavigation) {
+  // Solo el propio origen y el catálogo; /cdn-cgi/ es de Cloudflare (detección de bots, analytics)
+  if (!(isOwnOrigin || isCatalogCSV) || url.pathname.startsWith('/cdn-cgi/')) return;
+
+  if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          cacheCopy(request, response);
           return response;
         })
-        .catch(() =>
-          caches
-            .match(request)
-            .then((cached) => cached || caches.match('/index.html'))
-            .then((fallback) => {
-              if (!fallback) {
-                self.clients
-                  .matchAll({ includeUncontrolled: true })
-                  .then((clients) =>
-                    clients.forEach((client) =>
-                      client.postMessage({ type: 'dis-offline' })
-                    )
-                  );
-              }
-              return fallback || Response.error();
-            })
-        )
+        .catch(() => {
+          event.waitUntil(notifyNavigationOffline(event.resultingClientId));
+          return offlineNavigation(request);
+        })
     );
     return;
   }
 
-  // Catálogo CSV: network-first con fallback a caché
   if (isCatalogCSV) {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          cacheCopy(request, response);
           return response;
         })
         .catch(() =>
           caches.match(request).then((cached) => {
-            if (!cached) {
-              self.clients
-                .matchAll({ includeUncontrolled: true })
-                .then((clients) =>
-                  clients.forEach((client) => client.postMessage({ type: 'dis-offline' }))
-                );
-            }
+            if (!cached) notifyOffline();
             return cached || Response.error();
           })
         )
@@ -122,19 +142,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Recursos estáticos: cache-first
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-      return fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          }
-          return response;
-        })
-        .catch(() => cached || Response.error());
-    })
+    caches.match(request).then(
+      (cached) =>
+        cached ||
+        fetch(request)
+          .then((response) => {
+            cacheCopy(request, response);
+            return response;
+          })
+          .catch(() =>
+            caches.match(request, { ignoreSearch: true }).then((fallback) => fallback || Response.error())
+          )
+    )
   );
 });

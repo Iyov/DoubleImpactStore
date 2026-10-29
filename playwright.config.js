@@ -7,10 +7,13 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL: 'http://127.0.0.1:4173',
-    viewport: { width: 1280, height: 720 }
+    viewport: { width: 1280, height: 720 },
+    // Las peticiones que hace el Service Worker no pasan por page.route (los mocks
+    // del CSV); solo tests/e2e/pwa.spec.js lo habilita.
+    serviceWorkers: 'block'
   },
   webServer: {
-    command: 'python -m http.server 4173 --bind 127.0.0.1',
+    command: 'python scripts/serve.py 4173',
     url: 'http://127.0.0.1:4173',
     reuseExistingServer: true,
     timeout: 30000

@@ -36,5 +36,18 @@ for (const [source, minified] of PAIRS) {
   }
 }
 
+// El bundle de JS debe ser autocontenido: un import relativo significaría que
+// el navegador vuelve a pedir los módulos sin minificar.
+const BUNDLE = path.join(ROOT, '..', 'js', 'index.min.js');
+if (!fs.existsSync(BUNDLE)) {
+  console.error("[check-minification] ERROR: no existe js/index.min.js (ejecuta 'npm run build')");
+  failed = true;
+} else if (/\b(import|from)\s*["']\.{1,2}\//.test(fs.readFileSync(BUNDLE, 'utf8'))) {
+  console.error('[check-minification] ERROR: js/index.min.js importa módulos relativos; debe ser un bundle (npm run build).');
+  failed = true;
+} else {
+  console.log('[check-minification] OK: js/index.min.js es un bundle autocontenido.');
+}
+
 if (failed) process.exit(1);
 console.log('[check-minification] OK: todos los pares cumplen la reducción >= 36%.');

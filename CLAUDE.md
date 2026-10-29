@@ -16,28 +16,29 @@ Sitio estático de **DoubleImpactStore** (tienda de videojuegos retro, Santiago 
 npm test                                   # Vitest (jsdom) + fast-check, tests/**/*.test.js
 npx vitest run tests/siglas.test.js        # un archivo
 npx vitest run -t "nombre del test"        # un test por nombre
-npm run test:e2e                           # Playwright; levanta `python -m http.server 4173` solo
+npm run test:e2e                           # Playwright; levanta solo `python scripts/serve.py 4173`
 npx playwright test tests/e2e/home.spec.js -g "FAQ"   # un E2E
 npx playwright install chromium            # necesario la primera vez (si no, todos los E2E fallan)
-npm run minify                             # = build = `node watcher.js --once`; regenera todos los *.min.*
-npm run watch                              # minificador en modo watch
+npm run build                              # = minify = `node watcher.js --once` (CSS, bundle JS, ?v= y ASSETS_HASH)
+npm run watch                              # build en modo watch
 npm run check                              # check-siglas, check-manifest, check-brand, check-csp, check-minification
 npm run csp                                # regenera la CSP (<meta> en cada *.html + .htaccess)
 npm run test:py                            # pytest de api/ (pip install -r requirements-dev.txt)
 python api/update_instagram.py             # requiere INSTAGRAM_TOKEN (env o .env); escribe archivos solo si hay cambios
 ```
 
-No hay linter configurado. Para ver el sitio: `python -m http.server 4173` y abrir `http://127.0.0.1:4173/index.html` (las URLs limpias `/productos` funcionan en GitHub Pages, no en el server local).
+No hay linter configurado. Para ver el sitio: `python scripts/serve.py` y abrir `http://127.0.0.1:4173/index.html` (las URLs limpias `/productos` funcionan en GitHub Pages; en local solo vía Service Worker sin conexión).
 
 ## Arquitectura
 
-### Lo que realmente carga el navegador
+### Build: lo que realmente carga el navegador
 
-Las páginas HTML referencian **archivos minificados**: `css/style.min.css`, `css/productos.min.css`, `js/index.min.js`, `js/instagram_posts.min.js`. Pero `js/index.min.js` importa los módulos **sin minificar** (`./modules/ui.js`, etc.). Consecuencias:
+Las páginas cargan solo artefactos generados por `npm run build` (`watcher.js`), versionados en git:
+- `js/index.min.js`: **bundle esbuild** de `js/index.js` + todos los módulos + `js/social.js` (ESM, autocontenido). **Cualquier cambio en `js/**/*.js` requiere `npm run build`**; si no, el sitio sigue usando el bundle anterior. `check:minification` falla si el bundle importa módulos relativos.
+- `css/style.min.css`, `css/productos.min.css` (cssnano).
+- `js/instagram_posts.min.js` lo genera `api/update_instagram.py`, no el build.
 
-- Cambios en `js/modules/*.js` se ven de inmediato; cambios en `js/index.js`, `js/instagram_posts.js` o `css/*.css` requieren `npm run minify`.
-- Los `*.min.*` están versionados en git: después de editar fuentes, ejecuta `npm run minify` y commitea ambos.
-- Cache busting por query string `?v=...` en el HTML; los imports de módulos no llevan `?v=`.
+El build reescribe el `?v=<hash de contenido>` de esos assets (más font-awesome) en todos los `*.html` y `ASSETS_HASH` en `service-worker.js`. Es idempotente: sin cambios en las fuentes, no modifica nada. Después de editar fuentes: `npm run build` y commitear fuentes + artefactos.
 
 ### Flujo de arranque
 
@@ -74,7 +75,10 @@ Por eso el historial está lleno de commits "Se modificaron N post desde Instagr
 
 ### Service Worker / PWA
 
-`service-worker.js` (caché `doubleimpact-v{CACHE_VERSION}`): navegaciones network-first con fallback a caché y a `/index.html`; CSV de Google Sheets network-first con fallback a caché; resto del mismo origen cache-first. Al no haber caché, avisa a la página con `postMessage({type:'dis-offline'})` (indicador en `ui.js`). Cambiar `CACHE_VERSION` invalida toda la caché de todos los usuarios.
+`service-worker.js`, caché `doubleimpact-v{CACHE_VERSION}-{ASSETS_HASH}`: `CACHE_VERSION` lo escribe el bot de Instagram (cuando se agregan/eliminan posts) y `ASSETS_HASH` el build (cuando cambia CSS/JS). Cambiar cualquiera reinstala el SW y descarta la caché anterior; no los edites a mano.
+- Precache (`CORE_ASSETS`): páginas, CSS, `webfonts/*.woff2`, bundle, JSON de datos, logos. Si falta alguno, `install` falla a propósito y sigue el SW anterior: al agregar o renombrar un asset del precache, actualiza la lista.
+- Navegaciones: network-first; sin red, la página cacheada (también URL limpia `/productos` → `/productos.html`) o `/index.html`, y avisa `{type:'dis-offline'}` al cliente de esa navegación (`resultingClientId`) para mostrar `#offline-indicator`.
+- CSV de Google Sheets: network-first con fallback a caché. Estáticos del propio origen: cache-first por URL exacta (incluye `?v=`); sin red, cualquier versión cacheada del archivo (`ignoreSearch`). `/cdn-cgi/` (Cloudflare) no se intercepta.
 
 ### Despliegue y seguridad
 
@@ -89,7 +93,7 @@ La fuente de GitHub Pages es "Deploy from a branch" (`main`, raíz): el build au
 ### Tests
 
 - Unitarios en `tests/*.test.js` importan directamente `js/modules/*.js` (no los `.min`). Las propiedades 1–10 de `design.md` están implementadas con fast-check.
-- E2E en `tests/e2e/`: interceptan el CSV de Google Sheets con `page.route` y datos de `tests/e2e/fixtures.js`, así que no dependen de la hoja real.
+- E2E en `tests/e2e/`: interceptan el CSV de Google Sheets con `page.route` y datos de `tests/e2e/fixtures.js`, así que no dependen de la hoja real. Por eso `playwright.config.js` bloquea el Service Worker (sus peticiones no pasan por `page.route`); solo `pwa.spec.js` lo habilita con `test.use({ serviceWorkers: 'allow' })` y prueba el modo offline con `context.setOffline(true)` (ahí `navigator.onLine` sigue en `true`: el indicador depende del mensaje del SW).
 - `scripts/check-brand.js` busca la marca antigua (RopavejeroRetro). Las referencias legítimas a las cuentas originales `@ropavejero.retro` / `@nekketsustore` (origen de la tienda) deben mantenerse; los captions reales de Instagram pueden contener hashtags antiguos.
 
 ## Configuración externa

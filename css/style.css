@@ -432,21 +432,24 @@ h1, h2, h3, h4 {
 /* ---------- Offline indicator ----------
    Barra fija superior que se muestra cuando el Service Worker
    detecta falta de conexión o una página servida de caché. */
+/* Aviso flotante abajo a la izquierda: no tapa el header ni los botones
+   flotantes de la derecha, y no intercepta clics (es solo informativo). */
 .offline-indicator {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  max-width: calc(100% - 7.5rem);
   z-index: 1500;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 10px;
   padding: 10px 16px;
+  border-radius: 12px;
   background: var(--warning);
   color: #1b1b1f;
   font-size: 0.9rem;
   box-shadow: var(--shadow-sm);
+  pointer-events: none;
 }
 
 /* ---------- Hero ----------

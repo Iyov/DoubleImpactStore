@@ -93,22 +93,23 @@ Pendiente (decisión del dueño):
 
 **Criterio de aceptación:** cero violaciones CSP en la consola con GTM activo (cumplido en local y con red real; en producción, tras desactivar JavaScript Detections); redirección HTTPS y cabeceras visibles en `curl -I` (tras los ajustes de Cloudflare).
 
-## Fase 4 — Build y PWA
+## Fase 4 — Build y PWA ✅ completada
 
 **Issues:** 7, 8
 
-1. **Bundle único (7):** reemplazar la minificación archivo por archivo de JS por un bundle con `esbuild` (`js/index.js` → `js/index.min.js`, ES module, minificado, sourcemap opcional). Mantener `watcher.js` como entrada (`--once`/watch) para no romper los scripts npm. Eliminar `js/modules/*.min.js` del repo. Ajustar `scripts/check-minification.js` al nuevo artefacto.
-   - Alternativa sin dependencia nueva: que `watcher.js` reescriba los imports a `.min.js?v=<hash>` al minificar `index.js`.
-   - `watcher.js` también reformatea `js/instagram_posts.min.js` (lo genera `update_instagram.py` con otro formato) y regenera `service-worker.min.js`, que ninguna página usa: excluir ambos de `watcher.js` y borrar `service-worker.min.js`.
-2. **Cache busting por hash de contenido:** generar `?v=` desde el hash del archivo en `watcher.js` y reescribirlo en los HTML, en vez de fechas manuales.
+1. **Bundle único (7):** `watcher.js` usa esbuild para empaquetar `js/index.js` + módulos + `js/social.js` en `js/index.min.js` (ESM, autocontenido): de 133 KB en 11 peticiones sin minificar a 53 KB en 1. Se eliminaron `js/modules/*.min.js`, `js/social.min.js` y `service-worker.min.js` (ninguna página los usaba) y la dependencia `terser`. `watcher.js` ya no toca `js/instagram_posts*.js` ni el Service Worker más allá de `ASSETS_HASH`. `check:minification` valida que el bundle no importe módulos relativos.
+2. **Cache busting por hash de contenido:** el build escribe `?v=<sha256[0:10]>` de los CSS y del bundle en todos los `*.html`, y `ASSETS_HASH` (hash combinado) en `service-worker.js`. Es idempotente: un segundo build no cambia nada (requisito para el check de CI de la fase 5).
 3. **Service Worker (8):**
-   - Precachear el bundle (y cualquier módulo que siga cargándose).
-   - En `install`, dejar que falle si `cache.addAll` falla (sin `.catch` silencioso) o registrar el error.
-   - Usar `caches.match(request, { ignoreSearch: true })` para recursos versionados por query, o precachear con las mismas URLs `?v=` que usa el HTML.
-   - Fallback offline: servir `404.html`/página offline dedicada en vez de `index.html` para rutas desconocidas.
-4. E2E offline: `context.setOffline(true)` tras la primera carga → `/` y `/productos` cargan desde caché y muestran el indicador offline.
+   - Caché `doubleimpact-v{CACHE_VERSION}-{ASSETS_HASH}`: el bot escribe `CACHE_VERSION` y el build `ASSETS_HASH`, sin pisarse.
+   - Precache con el bundle, las fuentes de iconos (`webfonts/*.woff2`) y el placeholder de Instagram; `install` ya no oculta errores.
+   - Estáticos: cache-first por URL exacta y, sin red, cualquier versión cacheada (`ignoreSearch`). Navegaciones sin red: URL limpia `/productos` → `/productos.html`. No intercepta `/cdn-cgi/` (Cloudflare).
+4. **Bugs encontrados por el E2E offline:**
+   - El aviso `dis-offline` se enviaba antes de que existiera la página de la navegación y se perdía: ahora se envía a `resultingClientId` cuando aparece, y `ui.js` llama a `startMessages()`.
+   - El indicador offline (barra fija arriba) **tapaba los controles del header** (tema, idioma, menú) y bloqueaba los clics: ahora es un aviso flotante abajo a la izquierda con `pointer-events: none`, `role="status"` y `aria-live="polite"`.
+5. **E2E `tests/e2e/pwa.spec.js`** (4 tests): caché `doubleimpact-v*` con bundle y fuentes; portada offline con CSS, JS e indicador; `/productos` offline; asset con `?v=` nuevo servido offline.
+6. **Estabilidad de E2E:** `scripts/serve.py` reemplaza a `python -m http.server` (cola de 5 conexiones → `ECONNREFUSED` intermitentes con tests en paralelo) y silencia las cancelaciones de descarga del navegador. `playwright.config.js` bloquea el Service Worker salvo en `pwa.spec.js`, porque sus peticiones no pasan por los mocks de `page.route`. 6 ejecuciones completas seguidas en verde.
 
-**Criterio de aceptación:** primera visita + recarga offline funciona; Lighthouse PWA sin errores; solo un JS minificado cargado por página.
+**Criterio de aceptación:** primera visita + recarga offline funciona; solo un JS minificado cargado por página. Cumplido (Lighthouse PWA queda para la fase 5).
 
 ## Fase 5 — Calidad y repositorio
 

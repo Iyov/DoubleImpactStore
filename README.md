@@ -26,9 +26,9 @@ Lo más reciente:
 npm test           # Vitest + fast-check (42 tests unitarios / property-based)
 npm run test:watch # Vitest en modo watch
 npm run test:e2e   # Playwright (17 E2E; la primera vez: npx playwright install chromium)
-npm run minify     # minificación única (Terser + cssnano -> *.min.js / *.min.css)
-npm run build      # alias de minify
-npm run watch      # minificador en modo watch
+npm run build      # build: bundle JS (esbuild) + CSS (cssnano) + ?v= por hash
+npm run minify     # alias de build
+npm run watch      # build en modo watch
 npm run check      # smoke tests: siglas, manifest, marca, minificación
 ```
 
@@ -75,7 +75,7 @@ api/            update_instagram.py (procesador de posts)
 scripts/        check-siglas, check-manifest, check-brand, check-minification
 tests/          unitarios + property-based (Vitest + fast-check) y e2e/ (Playwright)
 .github/workflows/   update-instagram.yml
-watcher.js      minificador (Terser + cssnano), genera los .min.* versionados
+watcher.js      build (esbuild + cssnano): bundle js/index.min.js, CSS .min y ?v= por hash
 ```
 
 ## Versionado y PWA
