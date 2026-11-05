@@ -70,8 +70,8 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
 
 1. WHEN el usuario activa el modo oscuro, THE DoubleImpactStore SHALL aplicar variables CSS de tema oscuro a todos los elementos de la página y persistir la preferencia en `localStorage`.
 2. WHEN el usuario activa el modo claro, THE DoubleImpactStore SHALL aplicar variables CSS de tema claro a todos los elementos de la página y persistir la preferencia en `localStorage`.
-3. WHEN el usuario cambia el idioma a Inglés, THE DoubleImpactStore SHALL traducir todos los textos visibles de la interfaz al inglés usando el sistema de traducciones de `js/modules/ui.js`.
-4. WHEN el usuario cambia el idioma a Español, THE DoubleImpactStore SHALL traducir todos los textos visibles de la interfaz al español usando el sistema de traducciones de `js/modules/ui.js`.
+3. WHEN el usuario cambia el idioma a Inglés, THE DoubleImpactStore SHALL traducir todos los textos visibles de la interfaz al inglés usando el sistema de traducciones de `js/modules/i18n.js` (diccionario en `js/modules/translations.js`).
+4. WHEN el usuario cambia el idioma a Español, THE DoubleImpactStore SHALL traducir todos los textos visibles de la interfaz al español usando el sistema de traducciones de `js/modules/i18n.js` (diccionario en `js/modules/translations.js`).
 5. WHEN el sitio se carga por primera vez, THE DoubleImpactStore SHALL leer el idioma guardado en `localStorage` y aplicarlo antes de renderizar contenido visible.
 6. IF el `localStorage` no contiene preferencia de tema o idioma, THEN THE DoubleImpactStore SHALL usar español y modo oscuro como valores predeterminados.
 
@@ -115,7 +115,7 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
 
 #### Acceptance Criteria
 
-1. THE DoubleImpactStore SHALL mostrar los últimos posts de Instagram sincronizados, cargados desde `js/instagram_posts.min.js`.
+1. THE DoubleImpactStore SHALL mostrar los últimos posts de Instagram sincronizados, cargados con `fetch` desde `js/instagram_posts.json`.
 2. THE DoubleImpactStore SHALL mostrar imágenes de posts en formato WebP con variantes responsive (400px, 800px, 1200px) usando el atributo `srcset`.
 3. THE DoubleImpactStore SHALL implementar lazy loading en todas las imágenes de Instagram.
 4. THE DoubleImpactStore SHALL mostrar la fecha de cada post en formato relativo (ej. "Hace 3 días") en el idioma activo.
@@ -134,7 +134,7 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
 1. THE Instagram_Updater SHALL ejecutarse automáticamente cada 12 horas mediante GitHub Actions.
 2. THE Instagram_Updater SHALL seleccionar únicamente los posts que incluyan el hashtag `#DoubleImpactStoreWeb` para sincronización.
 3. WHEN se procesan imágenes de Instagram, THE Instagram_Updater SHALL generar variantes WebP en resoluciones 400px, 800px y 1200px usando la librería Pillow.
-4. WHEN se completa la sincronización, THE Instagram_Updater SHALL actualizar `js/instagram_posts.min.js`, la versión en `index.html` y el manifiesto del `service-worker.js`.
+4. WHEN se completa la sincronización con cambios significativos, THE Instagram_Updater SHALL actualizar `js/instagram_posts.json` y, si cambia el conjunto de imágenes (posts agregados o eliminados), la versión de caché (`CACHE_VERSION`) del `service-worker.js`. Los datos `.json` se sirven con estrategia red primero, por lo que no requieren versión en el HTML.
 5. THE Instagram_Updater SHALL leer el token de acceso desde la variable de entorno `INSTAGRAM_TOKEN` y no desde archivos versionados.
 6. IF el token de Instagram es inválido o ha expirado, THEN THE Instagram_Updater SHALL terminar con un código de error descriptivo y registrar el problema en los logs de GitHub Actions.
 
@@ -163,7 +163,7 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
 1. THE DoubleImpactStore SHALL implementar lazy loading nativo (`loading="lazy"`) en todas las imágenes que no estén en el viewport inicial.
 2. THE DoubleImpactStore SHALL usar imágenes en formato WebP con generación automática de variantes responsive (400, 800, 1200px) para todas las imágenes de contenido.
 3. THE DoubleImpactStore SHALL mantener versiones minificadas de todos los archivos CSS y JavaScript (`.min.css`, `.min.js`) con una reducción mínima del 36% respecto al original.
-4. THE DoubleImpactStore SHALL usar query strings de versión (ej. `?v=2026-08-17`) en todos los recursos estáticos para control de caché por versión.
+4. THE DoubleImpactStore SHALL usar query strings de versión basadas en el hash del contenido (ej. `?v=84c70a8245`) en los recursos CSS y JavaScript, generadas automáticamente por el Minificador; los datos `.json` se versionan mediante la estrategia red primero del Service_Worker.
 5. THE Minificador SHALL detectar cambios en archivos JS y CSS y regenerar automáticamente las versiones minificadas correspondientes.
 
 ---
@@ -228,7 +228,7 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
    - Título del evento (`efemeride.ES.title` o `efemeride.EN.title` según idioma activo)
    - Texto breve del evento (`efemeride.ES.text` o `efemeride.EN.text`)
    - Detalle expandible (`efemeride.ES.det` o `efemeride.EN.det`) con botón "Leer más" / "Read more"
-5. THE DoubleImpactStore SHALL llamar a `loadEfemerides()` y `renderEfemeride()` desde `js/index.js` dentro del evento `DOMContentLoaded`, garantizando que la sección se puebla con contenido real antes de que el usuario la vea.
+5. THE DoubleImpactStore SHALL llamar a `initEfemerides()` desde `js/index.js` dentro del evento `DOMContentLoaded`; `initEfemerides()` (en `js/modules/efemerides.js`) invoca `loadEfemerides()`, `getTodayEfemeride()` y `renderEfemeride()`, garantizando que la sección se puebla con contenido real antes de que el usuario la vea.
 6. THE `renderEfemeride` function SHALL buscar la efeméride del día construyendo la clave de fecha como `DD/MM` (ej. `"18/08"` para el 18 de agosto), recorriendo el array `data.efemerides` hasta encontrar la entrada cuyo campo `date` coincida exactamente.
 7. THE DoubleImpactStore SHALL aplicar un estilo visual distinto a la sección efemérides (ej. tarjeta con borde de acento, ícono de calendario) que la haga recognocible visualmente en la página principal.
 
@@ -314,13 +314,17 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
    - `cache.js` — sistema de caché con localStorage
    - `siglas.js` — carga, detección y renderizado de siglas
    - `utils.js` — sanitize, validate, sort y manejo de errores
-   - `ui.js` — tema, idioma, traducciones ES/EN, FAQ, blog, menú móvil
+   - `translations.js` — diccionario de traducciones ES/EN
+   - `i18n.js` — idioma: detección, persistencia y aplicación de traducciones
+   - `theme.js` — tema claro/oscuro
+   - `blog.js` — artículos del blog y modal
+   - `ui.js` — FAQ, menú móvil, navegación activa, barra de progreso, botones flotantes e inicialización de la interfaz
    - `products.js` — catálogo completo: tabla, filtros, paginación, modal
    - `instagram.js` — posts y filtros por consola con console_aliases.json
    - `efemerides.js` — efemérides del día
    - `analytics.js` — CSP, AdBlock y fallback analytics
 2. THE DoubleImpactStore SHALL mantener `js/index.js` como punto de entrada único con máximo 20 líneas que únicamente orqueste el `DOMContentLoaded`.
-3. WHEN se carga la página, THE DoubleImpactStore SHALL cargar los módulos en el orden correcto de dependencias definido en el HTML.
+3. WHEN se carga la página, THE DoubleImpactStore SHALL cargar los módulos en el orden correcto de dependencias, empaquetados por el Minificador en un único `js/index.min.js` referenciado desde el HTML.
 
 ---
 
@@ -448,7 +452,7 @@ El sitio es una aplicación web estática (HTML5 + CSS3 + JavaScript Vanilla) co
 #### Acceptance Criteria
 
 1. THE DoubleImpactStore SHALL garantizar que `<section id="efemerides">` existe en `index.html` con estructura HTML completa y un contenedor `id="efemerides-content"` donde se inyecta el contenido dinámico.
-2. THE DoubleImpactStore SHALL garantizar que `js/modules/efemerides.js` exporta `loadEfemerides()`, `getTodayEfemeride()` y `renderEfemeride()` y que las tres son llamadas en `js/index.js` dentro de `DOMContentLoaded`.
+2. THE DoubleImpactStore SHALL garantizar que `js/modules/efemerides.js` exporta `loadEfemerides()`, `getTodayEfemeride()`, `renderEfemeride()` e `initEfemerides()`, que `initEfemerides()` invoca a las otras tres y que `js/index.js` la llama dentro de `DOMContentLoaded`.
 3. THE DoubleImpactStore SHALL cargar `js/efemerides.json` usando `fetch('./js/efemerides.json')` o importación directa; la ruta debe ser correcta relativa al `index.html`.
 4. THE DoubleImpactStore SHALL buscar la efeméride del día usando el formato `"DD/MM"` (ej. `"18/08"` para el 18 de agosto), recorriendo `data.efemerides` hasta encontrar `entry.date === clave`.
 5. WHEN se encuentra la efeméride, THE DoubleImpactStore SHALL renderizar en `#efemerides-content`: título del evento, texto breve y detalle expandible con botón "Leer más" / "Read more".

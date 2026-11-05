@@ -155,7 +155,7 @@ Revisión de los requisitos R1–R27 con un script de Playwright sobre el sitio,
 - **Medido:** el Service Worker reduce el tiempo de carga un 78% en producción (903 → 201 ms; R8.5 pide 60–70%). Sin desborde horizontal a 360/768/1024/1440 px (R2.1).
 - **Tests:** `tests/e2e/requirements.spec.js` (6 E2E) y regresiones unitarias de siglas y efemérides.
 
-**Desviaciones deliberadas, pendientes de decisión del dueño** sobre si actualizar `requirements.md`: R6.1/R7.4 nombran `instagram_posts.min.js` (ahora `instagram_posts.json`, fase 6); R19.1 lista un único `ui.js` (dividido en la fase 6); R13.5/R27.2 piden que `index.js` llame a las tres funciones de efemérides (llama a `initEfemerides()` para cumplir el límite de 20 líneas de R19.2). Además, R4.7 pide "descripción" en el modal, pero la hoja no tiene esa columna, y R24.4/R25.6 se contradicen con la posición elegida para "Volver arriba".
+**Desviaciones deliberadas — resueltas el 2026-11-05:** a pedido del dueño se actualizó `requirements.md` (R3.3, R3.4, R6.1, R7.4, R9.4, R13.5, R19.1, R19.3, R27.2) para describir la implementación actual: `instagram_posts.json`, módulos `i18n.js`/`translations.js`/`theme.js`/`blog.js`, `initEfemerides()`, bundle único y versión por hash de contenido. Siguen abiertos sin cambios: R4.7 pide "descripción" en el modal, pero la hoja de Google no tiene esa columna, y R24.4/R25.6 se contradicen con la posición elegida para "Volver arriba" (encima de WhatsApp).
 
 ---
 
