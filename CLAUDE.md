@@ -17,7 +17,7 @@ Sitio estático de **DoubleImpactStore** (tienda de videojuegos retro, Santiago 
 npm test                                   # Vitest (jsdom) + fast-check, tests/**/*.test.js
 npx vitest run tests/siglas.test.js        # un archivo
 npx vitest run -t "nombre del test"        # un test por nombre
-npm run test:e2e                           # Playwright (solo en CI, ver abajo); levanta `python scripts/serve.py 4173`
+npm run test:e2e                           # Playwright con el Edge instalado (ver abajo); levanta `python scripts/serve.py 4173`
 npx playwright test tests/e2e/home.spec.js -g "FAQ"   # un E2E
 npm run build                              # = minify = `node watcher.js --once` (CSS, bundle JS, ?v= y ASSETS_HASH)
 npm run watch                              # build en modo watch
@@ -28,7 +28,7 @@ npm run site                               # arma _site/ (lo que se publica) y f
 python api/update_instagram.py             # requiere INSTAGRAM_TOKEN (env o .env); escribe archivos solo si hay cambios
 ```
 
-**Los E2E se ejecutan solo en el CI de GitHub** (`ci.yml` instala Chromium allí). El dueño no quiere navegadores de Playwright instalados en su máquina (ocupan ~700 MB en C:): no ejecutes `npx playwright install` en local. Para validar cambios en local usa `npm test`, `npm run test:py`, `npm run check` y `npm run site`; los E2E corren al hacer push.
+**E2E en local con Microsoft Edge, no con navegadores de Playwright:** `playwright.config.js` usa `channel: 'msedge'` fuera de CI, o sea el Edge ya instalado (perfil temporal, sin descargas). El dueño no quiere navegadores de Playwright en su máquina (ocupan ~700 MB en C:): **nunca ejecutes `npx playwright install`** en local. En el CI de GitHub (`CI=true`) se usa el Chromium que instala `ci.yml`, que es la referencia si algo difiere.
 
 No hay linter configurado. Para ver el sitio: `python scripts/serve.py` y abrir `http://127.0.0.1:4173/index.html` (las URLs limpias `/productos` funcionan en GitHub Pages; en local solo vía Service Worker sin conexión).
 

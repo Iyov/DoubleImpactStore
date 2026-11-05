@@ -6,6 +6,9 @@ export default defineConfig({
   fullyParallel: true,
   reporter: [['list']],
   use: {
+    // En local se usa el Microsoft Edge instalado (sin descargar navegadores de
+    // Playwright); en el CI de GitHub, el Chromium que instala ci.yml.
+    channel: process.env.CI ? undefined : 'msedge',
     baseURL: 'http://127.0.0.1:4173',
     viewport: { width: 1280, height: 720 },
     // Las peticiones que hace el Service Worker no pasan por page.route (los mocks
