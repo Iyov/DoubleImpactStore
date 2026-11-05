@@ -144,6 +144,19 @@ Pendiente (decisión del dueño):
 
 **Criterio de aceptación:** `npm test` y E2E en verde; `index.js` ≤20 líneas; sin variables globales propias en `window`. Cumplido: 43 unitarios, 44 E2E, 16 pytest.
 
+
+## Auditoría contra `requirements.md` (2026-10-29) ✅
+
+Revisión de los requisitos R1–R27 con un script de Playwright sobre el sitio, revisión de código y datos reales. La mayoría ya se cumplía; se corrigió:
+
+- **Bugs:** siglas detectadas dentro de palabras (285 falsos positivos en los 941 productos reales: "Romance" → CE, "Turismo" → MO; ahora 0); nombre de producto de Google Sheets insertado con `innerHTML` sin sanitizar fuera de las siglas (R11.2); tema e idioma guardados aplicados recién en `DOMContentLoaded`, con parpadeo (R3.5; ahora un script inline del `<head>` autorizado por hash en la CSP).
+- **Criterios incompletos:** fecha localizada de la efeméride (R13.4), siglas visibles en móvil (R5.3), selector 25/50/100 por página (R4.6), `aria-label` "Volver al inicio" y WhatsApp descriptivo traducidos (R24.5, R25.4), `keywords` y `twitter:image` en páginas secundarias (R10.1, R10.3), `<section>`/`<article>` (R2.4), logos WebP con `<picture>` (−75%) y lazy loading del footer (R9.1, R9.2), `knowsAbout` completo (R17.4).
+- **Cloudflare (2026-11-05):** `X-XSS-Protection` (R11.3) y CSP como cabecera HTTP (R11.1) agregadas por el dueño; verificadas con `curl -I`.
+- **Medido:** el Service Worker reduce el tiempo de carga un 78% en producción (903 → 201 ms; R8.5 pide 60–70%). Sin desborde horizontal a 360/768/1024/1440 px (R2.1).
+- **Tests:** `tests/e2e/requirements.spec.js` (6 E2E) y regresiones unitarias de siglas y efemérides.
+
+**Desviaciones deliberadas, pendientes de decisión del dueño** sobre si actualizar `requirements.md`: R6.1/R7.4 nombran `instagram_posts.min.js` (ahora `instagram_posts.json`, fase 6); R19.1 lista un único `ui.js` (dividido en la fase 6); R13.5/R27.2 piden que `index.js` llame a las tres funciones de efemérides (llama a `initEfemerides()` para cumplir el límite de 20 líneas de R19.2). Además, R4.7 pide "descripción" en el modal, pero la hoja no tiene esa columna, y R24.4/R25.6 se contradicen con la posición elegida para "Volver arriba".
+
 ---
 
 ## Configuración que debe aportar el dueño

@@ -17,9 +17,8 @@ Sitio estático de **DoubleImpactStore** (tienda de videojuegos retro, Santiago 
 npm test                                   # Vitest (jsdom) + fast-check, tests/**/*.test.js
 npx vitest run tests/siglas.test.js        # un archivo
 npx vitest run -t "nombre del test"        # un test por nombre
-npm run test:e2e                           # Playwright; levanta solo `python scripts/serve.py 4173`
+npm run test:e2e                           # Playwright (solo en CI, ver abajo); levanta `python scripts/serve.py 4173`
 npx playwright test tests/e2e/home.spec.js -g "FAQ"   # un E2E
-npx playwright install chromium            # necesario la primera vez (si no, todos los E2E fallan)
 npm run build                              # = minify = `node watcher.js --once` (CSS, bundle JS, ?v= y ASSETS_HASH)
 npm run watch                              # build en modo watch
 npm run check                              # check-siglas, check-manifest, check-brand, check-csp, check-minification
@@ -28,6 +27,8 @@ npm run test:py                            # pytest de api/ (pip install -r requ
 npm run site                               # arma _site/ (lo que se publica) y falla si hay referencias rotas
 python api/update_instagram.py             # requiere INSTAGRAM_TOKEN (env o .env); escribe archivos solo si hay cambios
 ```
+
+**Los E2E se ejecutan solo en el CI de GitHub** (`ci.yml` instala Chromium allí). El dueño no quiere navegadores de Playwright instalados en su máquina (ocupan ~700 MB en C:): no ejecutes `npx playwright install` en local. Para validar cambios en local usa `npm test`, `npm run test:py`, `npm run check` y `npm run site`; los E2E corren al hacer push.
 
 No hay linter configurado. Para ver el sitio: `python scripts/serve.py` y abrir `http://127.0.0.1:4173/index.html` (las URLs limpias `/productos` funcionan en GitHub Pages; en local solo vía Service Worker sin conexión).
 
@@ -56,7 +57,7 @@ No hay variables globales propias: los posts de Instagram se cargan con `fetch('
 - `ui.js` — FAQ (acordeón), menú móvil, navegación activa, barra de progreso, botones flotantes, indicador offline y `initUI()`, que inicializa tema, idioma, blog y redes (`../social.js`, `SOCIAL_LINKS`).
 - `products.js` — catálogo desde Google Sheets (`GOOGLE_SHEETS_CSV_URL`, endpoint `gviz/tq?tqx=out:csv`). Parser CSV propio. La hoja real solo rotula Product/Platform/Link: el mapeo de columnas es **posicional** (`COLUMN_MAP`) con detección de encabezado si existe. `Link` es un shortcode → `https://www.instagram.com/p/{Link}/`; `Sold === '1'` = vendido. Estado de filtros en un objeto `state` a nivel de módulo.
 - `cache.js` — `localStorage` con `{data, timestamp, ttl}`; TTL catálogo 5 min (`dis_catalog_cache`).
-- `siglas.js` — detecta claves de `js/siglas.json` (`{ SIGLA: { es, en } }`) en nombres de producto; siglas de 1 carácter solo como token aislado.
+- `siglas.js` — detecta claves de `js/siglas.json` (`{ SIGLA: { es, en } }`) en nombres de producto **solo como token** (sin letra ni número pegado; si no, "Turismo" contendría MO), y una sigla corta no cuenta si solo aparece dentro de una más larga (CIB dentro de CIB+). `renderSiglasTooltips` sanitiza todo el texto, no solo las siglas. En móvil, `products.js` agrega además una lista visible (`.siglas-mobile`) porque no hay hover.
 - `instagram.js` — carga `js/instagram_posts.json` y `js/console_aliases.json`, renderiza las tarjetas y filtra por consola (substring sobre `post.title`).
 - `efemerides.js` — `js/efemerides.json`, clave `DD/MM` y textos en `ES`/`EN` (mayúsculas, mientras `getLang()` devuelve minúsculas); si no hay entrada o falla la carga, la sección se oculta.
 - `analytics.js` — `ANALYTICS_CONFIG` (IDs de GTM/GA4/Cloudflare). GTM también está inyectado inline en el `<head>` de cada HTML con el mismo ID: si cambias el ID, cambia ambos (y ejecuta `npm run csp`, porque cambia el hash). Si GTM está presente, `loadGa4()` **no** carga GA4 (para no contar doble): GA4 debe configurarse como etiqueta dentro del contenedor GTM. Fallback local en `dis_analytics_events` si hay bloqueador.
@@ -91,7 +92,7 @@ La fuente de GitHub Pages es **"GitHub Actions"**: solo se publica `_site/`, que
 
 Flujo: push a `main` → `ci.yml` (build reproducible con `git diff --exit-code`, checks, Vitest, pytest, `npm run site`, E2E) → si pasa, `deploy.yml` (vía `workflow_run`) publica. El bot de Instagram dispara `deploy.yml` directamente. También se puede lanzar a mano (`workflow_dispatch`).
 
-**Cloudflare está delante** del dominio (proxy, plan Free, certificado de Cloudflare): por eso GitHub no emite certificado y "Enforce HTTPS" de Pages no se puede activar. En Cloudflare están configurados Always Use HTTPS (301), HSTS 6 meses + `nosniff` (SSL/TLS → Certificados de perímetro) y la Transform Rule "Cabeceras de seguridad" (`X-Frame-Options: DENY`, `Referrer-Policy`). Cloudflare inyecta en el HTML el decodificador de emails (`/cdn-cgi/...`, permitido por `'self'`), su beacon de Web Analytics (permitido) y, por Bot Fight Mode, un script inline de JavaScript Detections que la CSP bloquea: es el único aviso de CSP esperado en producción (issue 19).
+**Cloudflare está delante** del dominio (proxy, plan Free, certificado de Cloudflare): por eso GitHub no emite certificado y "Enforce HTTPS" de Pages no se puede activar. En Cloudflare están configurados Always Use HTTPS (301), HSTS 6 meses + `nosniff` (SSL/TLS → Certificados de perímetro) y la Transform Rule "Cabeceras de seguridad" (`X-Frame-Options: DENY`, `Referrer-Policy`, `X-XSS-Protection: 1; mode=block` y una CSP de cabecera con solo `frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'`, que no dependen del HTML; el resto de la CSP va en el `<meta>`). Cloudflare inyecta en el HTML el decodificador de emails (`/cdn-cgi/...`, permitido por `'self'`), su beacon de Web Analytics (permitido) y, por Bot Fight Mode, un script inline de JavaScript Detections que la CSP bloquea: es el único aviso de CSP esperado en producción (issue 19).
 
 **GitHub Pages ignora `.htaccess`**: queda como referencia para Apache/Cloudflare. La CSP real es el `<meta http-equiv="Content-Security-Policy">` de cada página, generado por `scripts/csp.js` (fuente única de la política; también escribe la línea de `.htaccess`). `script-src` autoriza el snippet inline de GTM por hash SHA-256, sin `'unsafe-inline'`:
 - Si cambias o agregas un `<script>` inline, o un origen externo (scripts, imágenes, `fetch`), edita `DIRECTIVES` en `scripts/csp.js` y ejecuta `npm run csp`. `npm run check` (`check:csp`) falla si quedó desincronizado, y `tests/e2e/security.spec.js` falla ante cualquier violación de CSP.

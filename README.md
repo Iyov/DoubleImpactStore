@@ -25,7 +25,7 @@ Lo más reciente:
 ```bash
 npm test           # Vitest + fast-check (42 tests unitarios / property-based)
 npm run test:watch # Vitest en modo watch
-npm run test:e2e   # Playwright (17 E2E; la primera vez: npx playwright install chromium)
+npm run test:e2e   # Playwright (50 E2E); se ejecutan en el CI de GitHub, no en local
 npm run build      # build: bundle JS (esbuild) + CSS (cssnano) + ?v= por hash
 npm run minify     # alias de build
 npm run watch      # build en modo watch
